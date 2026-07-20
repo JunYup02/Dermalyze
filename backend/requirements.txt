@@ -1,2 +1,16 @@
 fastapi
 uvicorn[standard]
+google-genai
+google-cloud-aiplatform
+pillow
+python-multipart
+python-dotenv
+httpx
+
+# --- Auth / lesion body-part (SQLAlchemy + JWT) ---
+sqlalchemy
+psycopg2-binary
+passlib[bcrypt]
+bcrypt==4.0.1  # passlib 1.7.4는 bcrypt>=4.1의 API 변경과 호환되지 않음
+python-jose[cryptography]
+pytest
