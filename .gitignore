@@ -6,6 +6,9 @@ venv/
 *.egg-info/
 .pytest_cache/
 
+# Local dev DB (SQLite fallback for auth/lesion feature)
+*.db
+
 # Env
 .env
 
