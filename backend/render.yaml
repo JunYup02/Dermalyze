@@ -20,8 +20,6 @@ services:
       # a Secret File, e.g. /etc/secrets/dermalyze-gcp.json — see backend/README.md.
       - key: GOOGLE_APPLICATION_CREDENTIALS
         sync: false
-      - key: GOOGLE_PLACES_API_KEY
-        sync: false
       - key: DATABASE_URL
         sync: false
       - key: SECRET_KEY

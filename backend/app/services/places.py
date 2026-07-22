@@ -1,29 +1,33 @@
-"""Finds nearby dermatology clinics/hospitals via the Google Places API (New).
+"""Finds nearby hospitals/clinics via the OpenStreetMap Overpass API.
 
-Requires the GOOGLE_PLACES_API_KEY env var. Field mask intentionally includes
-rating, userRatingCount, currentOpeningHours, and nationalPhoneNumber, which bill
-under the pricier Nearby Search Enterprise + Enterprise Atmosphere SKUs (not the
-cheaper Pro tier) -- this is a deliberate choice to support real ratings/hours/call
-in the UI. Drop them back to Pro-tier fields (see git history) if that cost stops
-being worth it.
+No API key required and no billing -- a deliberate tradeoff to avoid Google
+Places API costs. In exchange, data is community-sourced and inconsistent:
+not every clinic is mapped, and fields like phone/opening_hours are only
+present when someone tagged them in OSM. We never fabricate a rating,
+open/closed status, or business hours we can't back with real data -- if a
+field isn't in OSM for a given place, it's just omitted.
 """
 from __future__ import annotations
 
 import math
-import os
 
 import httpx
 from fastapi import HTTPException
 
 from app.schemas.hospitals import Hospital
 
-SEARCH_URL = "https://places.googleapis.com/v1/places:searchNearby"
-FIELD_MASK = (
-    "places.displayName,places.formattedAddress,places.location,"
-    "places.businessStatus,places.googleMapsUri,"
-    "places.rating,places.userRatingCount,"
-    "places.currentOpeningHours,places.nationalPhoneNumber"
-)
+OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+# hospital/clinic/doctors amenities, plus the newer healthcare=* tagging scheme.
+OVERPASS_QUERY = """
+[out:json][timeout:20];
+(
+  node["amenity"~"^(hospital|clinic|doctors)$"](around:{radius},{lat},{lng});
+  way["amenity"~"^(hospital|clinic|doctors)$"](around:{radius},{lat},{lng});
+  node["healthcare"~"^(hospital|clinic|doctor)$"](around:{radius},{lat},{lng});
+  way["healthcare"~"^(hospital|clinic|doctor)$"](around:{radius},{lat},{lng});
+);
+out center tags 30;
+"""
 EARTH_RADIUS_M = 6371000
 
 
@@ -36,45 +40,53 @@ def _distance_m(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     return 2 * EARTH_RADIUS_M * math.asin(math.sqrt(a))
 
 
+def _format_address(tags: dict) -> str:
+    parts = [
+        tags.get("addr:housenumber"),
+        tags.get("addr:street"),
+        tags.get("addr:city") or tags.get("addr:district"),
+    ]
+    return " ".join(p for p in parts if p)
+
+
 async def find_nearby(lat: float, lng: float, radius_m: float) -> list[Hospital]:
-    payload = {
-        "includedTypes": ["skin_care_clinic", "hospital"],
-        "maxResultCount": 10,
-        "locationRestriction": {
-            "circle": {"center": {"latitude": lat, "longitude": lng}, "radius": radius_m}
-        },
-    }
+    query = OVERPASS_QUERY.format(radius=int(radius_m), lat=lat, lng=lng)
     try:
-        headers = {
-            "Content-Type": "application/json",
-            "X-Goog-Api-Key": os.environ["GOOGLE_PLACES_API_KEY"],
-            "X-Goog-FieldMask": FIELD_MASK,
-        }
-        async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.post(SEARCH_URL, json=payload, headers=headers)
+        async with httpx.AsyncClient(timeout=25) as client:
+            response = await client.post(
+                OVERPASS_URL,
+                data={"data": query},
+                headers={"User-Agent": "Dermalyze/1.0 (skin-health assessment app)"},
+            )
             response.raise_for_status()
-    except (KeyError, httpx.HTTPError) as exc:
-        raise HTTPException(status_code=502, detail=f"Places lookup failed: {exc}") from exc
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"Nearby clinic lookup failed: {exc}") from exc
 
     hospitals = []
-    for place in response.json().get("places", []):
-        location = place.get("location", {})
-        place_lat, place_lng = location.get("latitude"), location.get("longitude")
-        opening_hours = place.get("currentOpeningHours") or {}
+    for el in response.json().get("elements", []):
+        tags = el.get("tags", {})
+        name = tags.get("name")
+        if not name:
+            continue  # unnamed entries aren't useful to show
+
+        if el["type"] == "node":
+            place_lat, place_lng = el.get("lat"), el.get("lon")
+        else:
+            center = el.get("center") or {}
+            place_lat, place_lng = center.get("lat"), center.get("lon")
+        if place_lat is None or place_lng is None:
+            continue
+
         hospitals.append(
             Hospital(
-                name=place.get("displayName", {}).get("text", ""),
-                address=place.get("formattedAddress", ""),
+                name=name,
+                address=_format_address(tags),
                 lat=place_lat,
                 lng=place_lng,
                 distance_m=_distance_m(lat, lng, place_lat, place_lng),
-                business_status=place.get("businessStatus"),
-                google_maps_url=place.get("googleMapsUri", ""),
-                rating=place.get("rating"),
-                user_rating_count=place.get("userRatingCount"),
-                open_now=opening_hours.get("openNow"),
-                weekday_hours=opening_hours.get("weekdayDescriptions"),
-                phone=place.get("nationalPhoneNumber"),
+                google_maps_url=f"https://www.google.com/maps/search/?api=1&query={place_lat},{place_lng}",
+                phone=tags.get("phone") or tags.get("contact:phone"),
+                opening_hours=tags.get("opening_hours"),
             )
         )
 

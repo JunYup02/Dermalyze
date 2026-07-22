@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 from app.schemas.gemini_report import ClassPrediction
 
-MODEL_NAME = "gemini-3.5-flash"
+MODEL_NAME = "gemini-2.5-flash"
 
 PROMPT_TEMPLATE = """당신은 피부과 진료를 보조하는 AI 어시스턴트입니다. 첨부된 이미지는 환자가 촬영한 피부
 병변 사진이고, 아래는 그 이미지를 AI 분류 모델로 분석한 결과이며 확률이 높은 순서대로 나열되어 있습니다.

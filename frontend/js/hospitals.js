@@ -5,14 +5,12 @@ const listEl = document.getElementById("clinics-list");
 const bannerEl = document.getElementById("location-banner");
 const mapFrameEl = document.getElementById("map-frame");
 const searchInput = document.getElementById("search-input");
-const openNowChip = document.getElementById("open-now-chip");
-const topRatedChip = document.getElementById("top-rated-chip");
 const radiusChips = document.querySelectorAll(".filter-chip[data-radius]");
 
 let coords = null;
 let radiusM = 3000;
 let allHospitals = [];
-let filters = { search: "", openNow: false, topRated: false };
+let searchQuery = "";
 
 // Contextual "urgent" banner if the user arrived here right after a higher-risk result.
 // Mirrors the risk tiering + labels in results.js; duplicated here to keep pages independent.
@@ -68,59 +66,22 @@ function formatDistance(meters) {
   return `${(meters / 1000).toFixed(1)} km`;
 }
 
-function statusPill(hospital) {
-  if (hospital.open_now === true) return `<span class="status-pill status-open">Open now</span>`;
-  if (hospital.open_now === false) return `<span class="status-pill status-closed">Closed</span>`;
-  if (!hospital.business_status) return "";
-  const open = hospital.business_status === "OPERATIONAL";
-  const label = hospital.business_status.replaceAll("_", " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
-  return `<span class="status-pill ${open ? "status-open" : "status-closed"}">${label}</span>`;
-}
-
-function starsMarkup(hospital) {
-  if (!hospital.rating) return "";
-  return `
-    <span class="stars">
-      <span class="material-symbols-outlined icon-filled">star</span>
-      <span class="rating-value">${hospital.rating.toFixed(1)}</span>
-      ${hospital.user_rating_count ? `<span class="rating-count">(${hospital.user_rating_count})</span>` : ""}
-    </span>
-  `;
-}
-
-function todayHoursLine(hospital) {
-  if (!hospital.weekday_hours || !hospital.weekday_hours.length) return "";
-  const dayIndex = (new Date().getDay() + 6) % 7; // API lists Monday first; JS getDay() is Sunday-first
-  return hospital.weekday_hours[dayIndex] || "";
-}
-
-function applyFilters(hospitals) {
-  let result = hospitals;
-  if (filters.search.trim()) {
-    const q = filters.search.trim().toLowerCase();
-    result = result.filter((h) => h.name.toLowerCase().includes(q));
-  }
-  if (filters.openNow) {
-    result = result.filter((h) => h.open_now === true);
-  }
-  result = [...result].sort((a, b) =>
-    filters.topRated ? (b.rating || 0) - (a.rating || 0) : a.distance_m - b.distance_m
-  );
-  return result;
-}
-
 function renderClinics() {
   stateEl.classList.add("hidden");
   listEl.innerHTML = "";
 
-  const hospitals = applyFilters(allHospitals);
+  let hospitals = allHospitals;
+  if (searchQuery.trim()) {
+    const q = searchQuery.trim().toLowerCase();
+    hospitals = hospitals.filter((h) => h.name.toLowerCase().includes(q));
+  }
 
   if (!hospitals.length) {
     stateEl.classList.remove("hidden");
     stateEl.innerHTML = `
       <span class="material-symbols-outlined">search_off</span>
-      <h3>No clinics match</h3>
-      <p>Try a wider radius or clearing filters.</p>
+      <h3>No clinics found nearby</h3>
+      <p>Try a wider radius or a different search term. Coverage depends on OpenStreetMap data in this area.</p>
     `;
     return;
   }
@@ -130,17 +91,13 @@ function renderClinics() {
     card.className = "card clinic-card";
     card.innerHTML = `
       <div class="clinic-head">
-        <div>
-          <h4>${h.name}</h4>
-          ${starsMarkup(h)}
-        </div>
-        ${statusPill(h)}
+        <h4>${h.name}</h4>
       </div>
       <div class="clinic-meta">
         <span><span class="material-symbols-outlined" style="font-size:18px;">near_me</span>${formatDistance(h.distance_m)}</span>
-        ${todayHoursLine(h) ? `<span><span class="material-symbols-outlined" style="font-size:18px;">schedule</span>${todayHoursLine(h)}</span>` : ""}
+        ${h.opening_hours ? `<span><span class="material-symbols-outlined" style="font-size:18px;">schedule</span>${h.opening_hours}</span>` : ""}
       </div>
-      <p class="text-body-md text-on-surface-variant" style="margin:0;">${h.address}</p>
+      ${h.address ? `<p class="text-body-md text-on-surface-variant" style="margin:0;">${h.address}</p>` : ""}
       <div style="display:flex; gap:8px;">
         ${h.phone ? `<a class="btn btn-outline" style="flex:1;" href="tel:${h.phone}"><span class="material-symbols-outlined" style="font-size:18px;">call</span>Call</a>` : ""}
         <a class="btn btn-primary" style="flex:1;" href="${h.google_maps_url}" target="_blank" rel="noopener">
@@ -155,7 +112,7 @@ function renderClinics() {
 
 async function loadClinics() {
   if (!coords) return;
-  setLoading("Finding nearby dermatology clinics…");
+  setLoading("Finding nearby clinics…");
   mapFrameEl.classList.remove("hidden");
   mapFrameEl.innerHTML = `<iframe src="https://www.google.com/maps?q=${coords.lat},${coords.lng}&z=13&output=embed" loading="lazy" title="Map of nearby clinics"></iframe>`;
   try {
@@ -183,19 +140,7 @@ radiusChips.forEach((chip) => {
 });
 
 searchInput.addEventListener("input", () => {
-  filters.search = searchInput.value;
-  renderClinics();
-});
-
-openNowChip.addEventListener("click", () => {
-  filters.openNow = !filters.openNow;
-  openNowChip.classList.toggle("active", filters.openNow);
-  renderClinics();
-});
-
-topRatedChip.addEventListener("click", () => {
-  filters.topRated = !filters.topRated;
-  topRatedChip.classList.toggle("active", filters.topRated);
+  searchQuery = searchInput.value;
   renderClinics();
 });
 

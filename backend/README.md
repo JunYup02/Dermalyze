@@ -38,14 +38,13 @@ cp .env.example .env
   Vertex AI AutoML image-classification endpoint
 - `GOOGLE_APPLICATION_CREDENTIALS` — path to a GCP service account key JSON with Vertex AI access
 
-`GET /api/hospitals/nearby?lat=&lng=` (nearby dermatology clinics/hospitals) needs:
-
-- `GOOGLE_PLACES_API_KEY` — a Google Places API (New) key. The field mask requests `rating`,
-  `userRatingCount`, `currentOpeningHours`, and `nationalPhoneNumber` in addition to the basic
-  fields, which bill under the pricier Nearby Search Enterprise + Enterprise Atmosphere SKUs
-  (not the cheaper Pro tier) — a deliberate tradeoff so the clinic cards can show real ratings,
-  open/closed status, and a call button instead of omitting them. Trim the field mask in
-  `app/services/places.py` back to Pro-tier fields if that cost stops being worth it.
+`GET /api/hospitals/nearby?lat=&lng=` (nearby hospitals/clinics) needs no env var or API key —
+it queries the free, keyless OpenStreetMap Overpass API (`app/services/places.py`). Tradeoff: OSM
+coverage is community-sourced, so `phone`/`opening_hours` are only present when someone tagged
+them, and there's no rating or "open now" — we don't fabricate those, so the UI shows distance/
+address/directions plus phone or hours only when real data exists. Swap back to Google Places if
+richer, more consistent data becomes worth the cost (see git history for the previous
+implementation).
 
 `POST /api/auth/signup`, `POST /api/auth/login`, `GET /api/lesion/body-regions`,
 `POST /api/lesion/body-part` (auth + lesion body-part selection) need:
@@ -67,8 +66,8 @@ for this service — connect the repo in the Render dashboard and it picks up th
 commands and health check automatically. Then fill in the env vars it declares (all `sync: false`,
 so Render prompts for them instead of committing values):
 
-- Same list as above (`GEMINI_API_KEY`, `VERTEX_*`, `GOOGLE_PLACES_API_KEY`, `SECRET_KEY` is
-  auto-generated, etc).
+- Same list as above (`GEMINI_API_KEY`, `VERTEX_*`, `SECRET_KEY` is auto-generated, etc). No
+  Places API key needed.
 - `GOOGLE_APPLICATION_CREDENTIALS` — don't paste key contents into a regular env var. Upload the
   service-account JSON as a Render **Secret File** (Environment → Secret Files), then set this
   var to the mount path Render gives it, e.g. `/etc/secrets/dermalyze-gcp.json`.

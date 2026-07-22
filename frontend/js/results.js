@@ -113,18 +113,21 @@ function render(data) {
     });
   }
 
-  if (risk === "high" || risk === "moderate") {
+  if (risk === "high") {
+    // High risk: search automatically instead of waiting for a click.
+    document.getElementById("auto-clinics").classList.remove("hidden");
+    autoFetchNearbyClinics();
+  } else {
+    // Moderate: a calmer teal prompt. Low: still offered, just not urgent (outline).
     const cta = document.getElementById("clinic-cta");
     cta.classList.remove("hidden");
-    // High risk reads as urgent (red); moderate is a calmer prompt (teal), matching
-    // how the two tiers are framed everywhere else on this page.
-    cta.classList.toggle("btn-danger", risk === "high");
     cta.classList.toggle("btn-primary", risk === "moderate");
+    cta.classList.toggle("btn-outline", risk === "low");
     document.getElementById("clinic-cta-label").textContent =
-      risk === "high" ? "Find a dermatologist nearby" : "Book a professional review";
+      risk === "moderate" ? "Book a professional review" : "Find a clinic near you";
   }
 
-  document.getElementById("print-btn").addEventListener("click", () => window.print());
+  document.getElementById("print-btn").addEventListener("click", () => downloadPdfReport(data, { info, pct, risk }));
 
   // Save this completed analysis into the (local, per-browser) scan history so it
   // shows up on the dashboard — see js/history.js for why this isn't backend-persisted.
@@ -140,5 +143,186 @@ function render(data) {
       imageDataUrl: data.imageDataUrl,
       resultPayload: data,
     });
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* High risk: search nearby clinics automatically, no click required.  */
+/* ------------------------------------------------------------------ */
+function autoFetchNearbyClinics() {
+  const stateEl = document.getElementById("auto-clinics-state");
+  const listEl = document.getElementById("auto-clinics-list");
+
+  function fail(message) {
+    stateEl.innerHTML = `
+      <span class="material-symbols-outlined">location_off</span>
+      <p>${message}</p>
+      <a href="hospitals.html" class="btn btn-outline">
+        <span class="material-symbols-outlined">medical_services</span>
+        Search clinics manually
+      </a>
+    `;
+  }
+
+  if (!navigator.geolocation) {
+    fail("This browser doesn't support location lookup — open Clinics to search manually.");
+    return;
+  }
+
+  // The clinic lookup runs against a free, shared community service (no API key) that
+  // can be slow or briefly rate-limited under load. Auto-search is a nicety, not the
+  // only path to clinics, so time out and hand off to the manual Clinics tab instead
+  // of leaving a spinner running forever.
+  const AUTO_SEARCH_TIMEOUT_MS = 12000;
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      try {
+        const hospitals = await Promise.race([
+          Api.getNearbyHospitals(position.coords.latitude, position.coords.longitude, 5000),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("timed out")), AUTO_SEARCH_TIMEOUT_MS)),
+        ]);
+        stateEl.classList.add("hidden");
+        if (!hospitals.length) {
+          listEl.innerHTML = `<p class="text-body-md text-outline">No clinics found nearby — try the Clinics tab for a wider search.</p>`;
+          return;
+        }
+        hospitals.slice(0, 3).forEach((h) => {
+          const distanceText = h.distance_m < 1000 ? `${Math.round(h.distance_m)} m` : `${(h.distance_m / 1000).toFixed(1)} km`;
+          const row = document.createElement("a");
+          row.className = "card";
+          row.style.cssText = "display:flex; align-items:center; gap:12px; text-decoration:none; padding:14px 16px;";
+          row.href = h.google_maps_url;
+          row.target = "_blank";
+          row.rel = "noopener";
+          row.innerHTML = `
+            <span class="material-symbols-outlined text-primary">location_on</span>
+            <span style="flex:1; min-width:0;">
+              <span style="display:block; font-weight:600; font-size:14px; color:var(--on-surface); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${h.name}</span>
+              <span style="display:block; font-size:12.5px; color:var(--outline);">${distanceText} away</span>
+            </span>
+            <span class="material-symbols-outlined text-outline">chevron_right</span>
+          `;
+          listEl.appendChild(row);
+        });
+        const viewAll = document.createElement("a");
+        viewAll.href = "hospitals.html";
+        viewAll.className = "btn btn-outline";
+        viewAll.innerHTML = `<span class="material-symbols-outlined">medical_services</span>View all nearby clinics`;
+        listEl.appendChild(viewAll);
+      } catch (err) {
+        fail(
+          err.message === "timed out"
+            ? "This is taking longer than expected."
+            : `Couldn't load nearby clinics: ${err.message}`
+        );
+      }
+    },
+    () => fail("Location access was denied — open Clinics to search manually."),
+    { enableHighAccuracy: false, timeout: 10000 }
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Real PDF report: vector text (a Korean font is embedded for jsPDF),  */
+/* built from the same Gemini-generated fields shown on screen -- not   */
+/* a screenshot of the page.                                            */
+/* ------------------------------------------------------------------ */
+let pdfLibsPromise = null;
+function loadPdfLibs() {
+  if (pdfLibsPromise) return pdfLibsPromise;
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = () => reject(new Error(`Failed to load ${src}`));
+      document.head.appendChild(s);
+    });
+  }
+  pdfLibsPromise = loadScript("https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js").then(() =>
+    loadScript("assets/fonts/NotoSansKR-normal.js")
+  );
+  return pdfLibsPromise;
+}
+
+async function downloadPdfReport(data, { info, pct, risk }) {
+  const btn = document.getElementById("print-btn");
+  setButtonBusy(btn, true, "Preparing PDF…");
+  try {
+    await loadPdfLibs();
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    // Registered on the instance (not the API prototype) -- this is the reliable path
+    // in jsPDF v2.x; the old addFileToVFS/addFont-before-instantiation pattern from
+    // jsPDF's fontconverter tool throws internally on recent versions.
+    doc.addFileToVFS("NotoSansKR-Regular.ttf", window.__NOTO_SANS_KR_BASE64__);
+    doc.addFont("NotoSansKR-Regular.ttf", "NotoSansKR", "normal");
+    doc.setFont("NotoSansKR", "normal");
+
+    const margin = 48;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const contentWidth = pageWidth - margin * 2;
+    let y = margin;
+
+    function heading(text, size) {
+      doc.setFontSize(size);
+      doc.text(text, margin, y);
+      y += size * 1.4;
+    }
+    function paragraph(text, size = 11) {
+      doc.setFontSize(size);
+      const lines = doc.splitTextToSize(text, contentWidth);
+      doc.text(lines, margin, y);
+      y += lines.length * size * 1.5 + 10;
+    }
+    function rule() {
+      doc.setDrawColor(220, 220, 220);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 18;
+    }
+
+    heading("Dermalyze Analysis Report", 20);
+    doc.setFontSize(10);
+    doc.setTextColor(120, 120, 120);
+    doc.text(new Date().toLocaleString(), margin, y);
+    doc.setTextColor(0, 0, 0);
+    y += 24;
+    rule();
+
+    paragraph(`Region: ${data.bodyPart?.label || "—"}`, 12);
+    paragraph(`Classification: ${info.label} (${pct}%)`, 12);
+    paragraph(`Risk tier: ${risk.charAt(0).toUpperCase() + risk.slice(1)} risk`, 12);
+    if (data.isDemo) {
+      doc.setTextColor(180, 100, 20);
+      paragraph("This is placeholder demo output — no Vertex AI model was connected when it was generated.", 10);
+      doc.setTextColor(0, 0, 0);
+    }
+    rule();
+
+    heading("Summary", 13);
+    paragraph(data.report || "No written summary was returned for this analysis.");
+
+    heading("Texture", 13);
+    paragraph(data.texture_note || "Not available.");
+
+    heading("Pigment", 13);
+    paragraph(data.pigment_note || "Not available.");
+
+    rule();
+    doc.setFontSize(9);
+    doc.setTextColor(120, 120, 120);
+    const disclaimer = doc.splitTextToSize(
+      "This AI-generated analysis is for informational purposes only and is not a clinical diagnosis. Always consult a licensed dermatologist for medical advice before making any health-related decisions.",
+      contentWidth
+    );
+    doc.text(disclaimer, margin, y);
+
+    const stamp = new Date().toISOString().slice(0, 10);
+    doc.save(`dermalyze-report-${stamp}.pdf`);
+  } catch (err) {
+    alert("Couldn't generate the PDF: " + err.message);
+  } finally {
+    setButtonBusy(btn, false);
   }
 }

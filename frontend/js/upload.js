@@ -17,7 +17,6 @@ const previewImg = document.getElementById("preview-img");
 const removeBtn = document.getElementById("remove-photo");
 const analyzeBtn = document.getElementById("analyze-btn");
 const errorEl = document.getElementById("upload-error");
-const cameraInput = document.getElementById("camera-input");
 const fileInput = document.getElementById("file-input");
 
 let selectedFile = null;
@@ -47,17 +46,87 @@ function handleFile(file) {
   reader.readAsDataURL(file);
 }
 
-cameraInput.addEventListener("change", (e) => handleFile(e.target.files[0]));
 fileInput.addEventListener("change", (e) => handleFile(e.target.files[0]));
 
 removeBtn.addEventListener("click", () => {
   selectedFile = null;
   selectedDataUrl = null;
-  cameraInput.value = "";
   fileInput.value = "";
   previewWrap.classList.add("hidden");
   dropzone.classList.remove("hidden");
   analyzeBtn.disabled = true;
+});
+
+/* ------------------------------------------------------------------ */
+/* Live in-page camera capture for "Take photo" -- guarantees this      */
+/* button actually opens the camera, rather than delegating to the OS's */
+/* file/photo chooser (which is what a plain <input capture> falls back */
+/* to on some browsers, indistinguishable from "Upload").                */
+/* ------------------------------------------------------------------ */
+const takePhotoBtn = document.getElementById("take-photo-btn");
+const cameraModal = document.getElementById("camera-modal");
+const cameraVideo = document.getElementById("camera-video");
+const cameraCanvas = document.getElementById("camera-canvas");
+const cameraErrorEl = document.getElementById("camera-error");
+const cameraErrorText = document.getElementById("camera-error-text");
+const cameraCancelBtn = document.getElementById("camera-cancel-btn");
+const cameraShutterBtn = document.getElementById("camera-shutter-btn");
+
+let cameraStream = null;
+
+function stopCamera() {
+  cameraStream?.getTracks().forEach((track) => track.stop());
+  cameraStream = null;
+  cameraModal.classList.add("hidden");
+  cameraErrorEl.classList.add("hidden");
+  cameraVideo.classList.remove("hidden");
+  cameraVideo.srcObject = null;
+}
+
+async function openCamera() {
+  cameraModal.classList.remove("hidden");
+  cameraErrorEl.classList.add("hidden");
+  cameraVideo.classList.remove("hidden");
+
+  if (!navigator.mediaDevices?.getUserMedia) {
+    cameraVideo.classList.add("hidden");
+    cameraErrorText.textContent = "This browser doesn't support in-page camera capture. Use \"Upload\" instead and select a photo from your camera roll.";
+    cameraErrorEl.classList.remove("hidden");
+    return;
+  }
+
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } },
+      audio: false,
+    });
+    cameraVideo.srcObject = cameraStream;
+  } catch (err) {
+    cameraVideo.classList.add("hidden");
+    cameraErrorText.textContent =
+      err.name === "NotAllowedError"
+        ? "Camera access was denied. Allow camera permission for this site, or use \"Upload\" instead."
+        : "Couldn't access the camera. Use \"Upload\" instead and select a photo from your camera roll.";
+    cameraErrorEl.classList.remove("hidden");
+  }
+}
+
+takePhotoBtn.addEventListener("click", openCamera);
+cameraCancelBtn.addEventListener("click", stopCamera);
+
+cameraShutterBtn.addEventListener("click", () => {
+  if (!cameraStream) return;
+  cameraCanvas.width = cameraVideo.videoWidth;
+  cameraCanvas.height = cameraVideo.videoHeight;
+  cameraCanvas.getContext("2d").drawImage(cameraVideo, 0, 0);
+  cameraCanvas.toBlob(
+    (blob) => {
+      if (blob) handleFile(new File([blob], `capture-${Date.now()}.jpg`, { type: "image/jpeg" }));
+      stopCamera();
+    },
+    "image/jpeg",
+    0.9
+  );
 });
 
 // Drag-and-drop onto the dropzone (desktop convenience)

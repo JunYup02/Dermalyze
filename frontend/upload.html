@@ -42,10 +42,10 @@
 
         <div class="dropzone" id="dropzone">
           <div class="dropzone-grid">
-            <label class="dropzone-cell" for="camera-input">
+            <button type="button" class="dropzone-cell" id="take-photo-btn" style="border:none; background:none; cursor:pointer; font-family:inherit;">
               <span class="material-symbols-outlined">photo_camera</span>
               <strong>Take photo</strong>
-            </label>
+            </button>
             <label class="dropzone-cell" for="file-input">
               <span class="material-symbols-outlined">image</span>
               <strong>Upload</strong>
@@ -53,8 +53,21 @@
             </label>
           </div>
         </div>
-        <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden">
         <input type="file" id="file-input" accept="image/*" class="hidden">
+
+        <div id="camera-modal" class="hidden" style="position:fixed; inset:0; z-index:100; background:#000; display:flex; flex-direction:column;">
+          <video id="camera-video" autoplay playsinline muted style="flex:1; width:100%; object-fit:cover; background:#000;"></video>
+          <canvas id="camera-canvas" class="hidden"></canvas>
+          <div id="camera-error" class="hidden" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:#fff; padding:24px; text-align:center;">
+            <span class="material-symbols-outlined" style="font-size:42px;">videocam_off</span>
+            <p id="camera-error-text" style="margin:0;">Couldn't access the camera.</p>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:20px 24px; background:rgba(0,0,0,0.6);">
+            <button type="button" id="camera-cancel-btn" class="btn" style="background:rgba(255,255,255,0.15); color:#fff;">Cancel</button>
+            <button type="button" id="camera-shutter-btn" aria-label="Capture photo" style="width:64px; height:64px; border-radius:50%; background:#fff; border:4px solid rgba(255,255,255,0.5); cursor:pointer;"></button>
+            <span style="width:76px;"></span>
+          </div>
+        </div>
 
         <div id="preview-wrap" class="hidden">
           <div class="preview-frame">

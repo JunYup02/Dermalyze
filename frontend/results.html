@@ -8,13 +8,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <style>
-    @media print {
-      .topbar, .bottom-nav, footer, #next-steps { display: none !important; }
-      .app-frame { box-shadow: none; margin: 0; max-width: 100%; }
-      body { background: #fff; }
-    }
-  </style>
 </head>
 <body>
   <div class="app-frame">
@@ -83,6 +76,16 @@
 
         <section id="next-steps" style="display:flex; flex-direction:column; gap: var(--stack-gap);">
           <h3 class="text-headline-sm" style="margin:0;">Recommended next steps</h3>
+
+          <div id="auto-clinics" class="hidden" style="display:flex; flex-direction:column; gap:10px;">
+            <p class="text-label-md text-outline uppercase-label" style="margin:0;">Nearby dermatologists</p>
+            <div id="auto-clinics-state" class="state-panel" style="padding: 18px;">
+              <div class="spinner" style="border-color: color-mix(in srgb, var(--outline) 30%, transparent); border-top-color: var(--outline);"></div>
+              <p>Finding nearby clinics…</p>
+            </div>
+            <div id="auto-clinics-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+          </div>
+
           <div style="display:flex; flex-direction:column; gap:12px;">
             <a id="clinic-cta" href="hospitals.html" class="btn btn-danger hidden">
               <span class="material-symbols-outlined">calendar_month</span>
@@ -90,7 +93,7 @@
             </a>
             <button id="print-btn" class="btn btn-outline">
               <span class="material-symbols-outlined">picture_as_pdf</span>
-              Download / print report
+              <span id="print-btn-label">Download report (PDF)</span>
             </button>
           </div>
         </section>
