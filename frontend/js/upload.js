@@ -91,10 +91,28 @@ analyzeBtn.addEventListener("click", async () => {
   } catch (err) {
     if (err.status === 503) {
       // Vertex env vars aren't set at all yet — expected until a model is deployed.
-      showBanner(
-        errorEl,
-        "The analysis model isn't connected yet. Once a Vertex AI endpoint is deployed and its project/location/endpoint ID are set on the backend, this will work automatically."
-      );
+      // Rather than dead-ending the flow here, continue to the results screen with
+      // clearly-labeled placeholder data so the rest of the app stays walkable.
+      const demoPayload = {
+        bodyPart,
+        isDemo: true,
+        predictions: [
+          { id: "demo-nv", name: "nv", probability: 0.82 },
+          { id: "demo-bkl", name: "bkl", probability: 0.11 },
+          { id: "demo-mel", name: "mel", probability: 0.07 },
+        ],
+        report:
+          "실제 분석 모델(Vertex AI)이 아직 연결되지 않아 이 결과는 예시(데모) 데이터입니다. 엔드포인트가 배포되고 나면 실제 분석 결과가 표시됩니다.",
+        texture_note: "데모 데이터 — 실제 이미지 분석 결과가 아닙니다.",
+        pigment_note: "데모 데이터 — 실제 이미지 분석 결과가 아닙니다.",
+      };
+      try {
+        sessionStorage.setItem("dermalyze_result", JSON.stringify({ ...demoPayload, imageDataUrl: selectedDataUrl }));
+      } catch {
+        sessionStorage.setItem("dermalyze_result", JSON.stringify(demoPayload));
+      }
+      window.location.href = "results.html";
+      return;
     } else if (err.status === 502) {
       // Env vars are set, but the actual Vertex AI call failed (bad endpoint, auth, quota, etc).
       showBanner(errorEl, "The analysis model is connected but the prediction failed: " + err.message);

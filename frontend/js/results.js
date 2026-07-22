@@ -52,6 +52,18 @@ if (!raw) {
 function render(data) {
   contentEl.classList.remove("hidden");
 
+  if (data.isDemo) {
+    const demoBanner = document.createElement("div");
+    demoBanner.className = "banner";
+    demoBanner.style.background = "var(--risk-moderate-bg)";
+    demoBanner.style.color = "var(--risk-moderate-fg)";
+    demoBanner.innerHTML = `
+      <span class="material-symbols-outlined">science</span>
+      <span>Demo data — the Vertex AI model isn't connected yet, so this is placeholder output, not a real analysis.</span>
+    `;
+    contentEl.prepend(demoBanner);
+  }
+
   if (data.imageDataUrl) {
     document.getElementById("image-section").classList.remove("hidden");
     document.getElementById("result-img").src = data.imageDataUrl;
@@ -116,13 +128,17 @@ function render(data) {
 
   // Save this completed analysis into the (local, per-browser) scan history so it
   // shows up on the dashboard — see js/history.js for why this isn't backend-persisted.
-  saveScanRecord({
-    region_label: data.bodyPart?.label || "—",
-    risk,
-    top_label: info.label,
-    top_probability: top.probability,
-    finding_text: data.texture_note || data.report?.slice(0, 100) || "",
-    imageDataUrl: data.imageDataUrl,
-    resultPayload: data,
-  });
+  // Demo results (no Vertex endpoint connected) are deliberately not saved, since
+  // they aren't a real analysis.
+  if (!data.isDemo) {
+    saveScanRecord({
+      region_label: data.bodyPart?.label || "—",
+      risk,
+      top_label: info.label,
+      top_probability: top.probability,
+      finding_text: data.texture_note || data.report?.slice(0, 100) || "",
+      imageDataUrl: data.imageDataUrl,
+      resultPayload: data,
+    });
+  }
 }
