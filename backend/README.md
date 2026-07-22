@@ -22,9 +22,12 @@ uvicorn app.main:app --reload
 
 ## Env vars
 
-`POST /api/gemini-report` (image in, classification + Gemini natural-language report out)
-needs these set. Copy `.env.example` to `.env` and fill in the values — it's loaded
-automatically on startup (`app/core/config.py`) and gitignored, so it never gets committed:
+`POST /api/gemini-report` (image in, classification + Gemini natural-language report out) returns
+`report` (overall summary), plus `texture_note` and `pigment_note` — short observations Gemini
+generates by looking directly at the uploaded photo (via structured JSON output, see
+`app/services/gemini_report.py`), not static text or a separate scoring model. Needs these set.
+Copy `.env.example` to `.env` and fill in the values — it's loaded automatically on startup
+(`app/core/config.py`) and gitignored, so it never gets committed:
 
 ```
 cp .env.example .env
@@ -37,10 +40,12 @@ cp .env.example .env
 
 `GET /api/hospitals/nearby?lat=&lng=` (nearby dermatology clinics/hospitals) needs:
 
-- `GOOGLE_PLACES_API_KEY` — a Google Places API (New) key. The field mask only requests
-  Nearby Search **Pro**-tier fields (cheaper) — no `rating`, `userRatingCount`, or
-  `currentOpeningHours`, since those bill under the pricier "Nearby Search Enterprise" SKU.
-  Add them in `app/services/places.py` if that cost is acceptable later.
+- `GOOGLE_PLACES_API_KEY` — a Google Places API (New) key. The field mask requests `rating`,
+  `userRatingCount`, `currentOpeningHours`, and `nationalPhoneNumber` in addition to the basic
+  fields, which bill under the pricier Nearby Search Enterprise + Enterprise Atmosphere SKUs
+  (not the cheaper Pro tier) — a deliberate tradeoff so the clinic cards can show real ratings,
+  open/closed status, and a call button instead of omitting them. Trim the field mask in
+  `app/services/places.py` back to Pro-tier fields if that cost stops being worth it.
 
 `POST /api/auth/signup`, `POST /api/auth/login`, `GET /api/lesion/body-regions`,
 `POST /api/lesion/body-part` (auth + lesion body-part selection) need:

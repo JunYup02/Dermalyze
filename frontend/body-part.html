@@ -16,7 +16,7 @@
         <button class="icon-btn" data-nav-back="dashboard.html" aria-label="Go back">
           <span class="material-symbols-outlined">arrow_back</span>
         </button>
-        <img class="topbar-logo" src="assets/images/logo.png" alt="">
+        <img class="topbar-logo" src="assets/images/logo-icon.png" alt="">
         <span class="topbar-title">Dermalyze</span>
       </div>
       <button class="avatar-btn" data-account-btn aria-label="Account">
@@ -25,13 +25,12 @@
     </header>
 
     <main class="screen" style="padding-bottom: 100px;">
-      <div class="stepper">
-        <div class="stepper-row">
-          <span class="text-label-md text-primary uppercase-label">Step 1 of 3 — Body part</span>
-          <span class="text-label-sm text-outline">33%</span>
-        </div>
-        <div class="stepper-track"><div class="stepper-fill" style="width: 33%;"></div></div>
-      </div>
+      <nav class="circle-stepper" aria-label="Progress">
+        <div class="circle-step done"><span class="dot"><span class="material-symbols-outlined" style="font-size:16px;">check</span></span><span class="step-label">Account</span></div>
+        <div class="circle-step current"><span class="dot">2</span><span class="step-label">Body Part</span></div>
+        <div class="circle-step"><span class="dot">3</span><span class="step-label">Capture</span></div>
+        <div class="circle-step"><span class="dot">4</span><span class="step-label">Review</span></div>
+      </nav>
 
       <div>
         <h1 class="text-headline-md" style="margin:0 0 6px;">Where is the lesion located?</h1>
@@ -39,8 +38,8 @@
       </div>
 
       <div class="toggle-pill">
-        <button type="button" id="front-view-btn" class="active">Front</button>
-        <button type="button" id="back-view-btn">Back</button>
+        <button type="button" id="front-view-btn" class="active">Front View</button>
+        <button type="button" id="back-view-btn">Back View</button>
       </div>
 
       <div id="regions-state" class="state-panel">
@@ -48,7 +47,21 @@
         <p>Loading body regions…</p>
       </div>
 
-      <div id="regions-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+      <div id="silhouette-wrap" class="hidden" style="display:flex; flex-direction:column; gap:10px;">
+        <div class="silhouette-card">
+          <div class="silhouette-frame" id="frame-front">
+            <img src="assets/images/silhouette-front.png" alt="Front-view body diagram — tap a region">
+          </div>
+          <div class="silhouette-frame hidden" id="frame-back">
+            <img src="assets/images/silhouette-back.png" alt="Back-view body diagram — tap a region">
+          </div>
+          <div class="silhouette-hint">
+            <span class="material-symbols-outlined" style="font-size:14px;">touch_app</span>
+            Tap a zone
+          </div>
+        </div>
+        <p class="selected-region-label" id="selected-region-label">No region selected yet</p>
+      </div>
 
       <div id="body-part-error" class="banner banner-error hidden">
         <span class="material-symbols-outlined">error</span>

@@ -10,3 +10,5 @@ class ClassPrediction(BaseModel):
 class GeminiReportResponse(BaseModel):
     predictions: list[ClassPrediction]
     report: str
+    texture_note: str
+    pigment_note: str

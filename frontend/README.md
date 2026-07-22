@@ -1,31 +1,36 @@
 # Frontend
 
 Static HTML/CSS/JS — no build step, no framework. Talks to the FastAPI backend
-in `../backend` over plain `fetch()`.
+in `../backend` over plain `fetch()`. Visual design matches the real Stitch
+export in `Dermalyze_data/Frontend/stitch_dermalyze_skin_assessment_app.zip`
+(52 screens/iterations — `clinical_clarity/DESIGN.md` inside it is the actual
+design spec: colors, type scale, elevation, shape language).
 
 ```
-index.html        # login (entry point)
+index.html         # login (entry point)
 signup.html
-dashboard.html
-body-part.html     # step 1/3 — GET /api/lesion/body-regions, POST /api/lesion/body-part
-upload.html        # step 2/3 — POST /api/gemini-report (classification + Gemini report)
-results.html       # step 3/3 — renders the stored analysis result
-hospitals.html      # GET /api/hospitals/nearby
-support.html
+dashboard.html      # hero CTA, stats, recent activity (from local scan history), tips
+body-part.html      # step 2/4 — silhouette + tap-to-select hotspots (front/back)
+upload.html         # step 3/4 — capture/upload, real quality-comparison photos
+results.html        # step 4/4 — gauge, risk tier, Texture/Pigment, next steps
+hospitals.html       # "Clinics" tab — search/filter, map, real ratings/hours/call
+support.html         # FAQ accordion (searchable) + mailto contact form
 
-css/style.css       # design tokens (color/type/spacing) carried over from the
-                     # Dermalyze_data/Frontend/*.txt Stitch mockups, + a derived dark theme
+css/style.css        # design tokens (color/type/spacing/elevation) + components
 
-js/config.js        # API_BASE_URL — the one thing you edit per environment
-js/api.js           # fetch wrapper for every backend route
-js/auth.js          # token storage, login/signup form handlers, requireAuth() guard
-js/nav.js           # shared header/back-button/logout wiring
+js/config.js         # API_BASE_URL — the one thing you edit per environment
+js/api.js            # fetch wrapper for every backend route
+js/auth.js           # token storage, login/signup form handlers, requireAuth() guard
+js/nav.js            # shared header/back-button/logout wiring
+js/history.js        # local (per-browser, per-username) scan history — see below
 js/body-part.js
 js/upload.js
 js/results.js
 js/hospitals.js
+js/dashboard.js
+js/support.js
 
-assets/images/logo.png
+assets/images/        # real assets extracted from the Stitch export, not placeholder URLs
 ```
 
 ## Run locally
@@ -37,28 +42,52 @@ python3 -m http.server 5500
 ```
 
 then open `http://127.0.0.1:5500/index.html`. The backend must also be running
-(see `../backend/README.md`) — by default `js/config.js` points at
-`http://127.0.0.1:8000`.
+(see `../backend/README.md`) — by default `js/config.js` points at the
+deployed Render backend; override it for local dev by running
+`localStorage.setItem('dermalyze_api_base', 'http://127.0.0.1:8000')` in the
+browser console (see below).
 
-## Pointing at a deployed backend
+## Pointing at a backend
 
-Once the FastAPI service is live on Render, either:
+`js/config.js`'s `DEFAULT_API_BASE_URL` is the single source of truth. To test
+against a different backend without editing files, open the browser console
+on any page and run:
 
-- edit `DEFAULT_API_BASE_URL` in `js/config.js` to the Render URL (e.g.
-  `https://dermalyze-api.onrender.com`) and redeploy the frontend, or
-- for quick testing without editing files, open the browser console on any
-  page and run `localStorage.setItem('dermalyze_api_base', 'https://dermalyze-api.onrender.com')`
-  — it overrides the default and persists across reloads.
+```js
+localStorage.setItem('dermalyze_api_base', 'http://127.0.0.1:8000')
+```
 
-If the frontend ends up on its own origin (e.g. GitHub Pages, Netlify, a
-separate Render static site), set `CORS_ALLOWED_ORIGINS` on the backend to
-that exact origin — see `../backend/README.md`.
+— it overrides the default and persists across reloads until cleared.
+
+If the frontend ends up on its own origin (Render static site, GitHub Pages,
+Netlify, ...), set `CORS_ALLOWED_ORIGINS` on the backend to that exact origin
+— see `../backend/README.md`.
 
 ## Notes on the model-not-ready state
 
-The classification model isn't deployed yet, so `POST /api/gemini-report`
-currently returns a 502 from `vertex_predictor.classify()`. `js/upload.js`
-catches that specifically and shows a plain-language "analysis model isn't
-connected yet" message instead of a broken screen — no frontend changes are
-needed once a real Vertex AI endpoint is deployed and `VERTEX_ENDPOINT_ID` is
-set on the backend.
+The classification model isn't deployed yet. `vertex_predictor.classify()`
+returns a 503 with a clear message if `VERTEX_PROJECT_ID` / `VERTEX_LOCATION`
+/ `VERTEX_ENDPOINT_ID` aren't all set (the common case right now), or a 502 if
+they're set but the actual Vertex call fails. `js/upload.js` handles both
+distinctly with accurate copy instead of a broken screen — no frontend
+changes are needed once a real endpoint is deployed and configured.
+
+## Things that are real data vs. deliberately not backed by anything yet
+
+- **Scan history / dashboard stats** — no backend model or endpoint exists for
+  this, so `js/history.js` keeps a real history of this browser's own
+  completed analyses in `localStorage` (namespaced per logged-in username).
+  It's accurate for the device it runs on but doesn't sync across devices. A
+  real cross-device history would need a `Scan` model + `/api/scans`
+  endpoints on the backend.
+- **Clinic ratings / hours / phone** — real, from the Google Places API (New)
+  Enterprise-tier fields (`app/services/places.py` on the backend). No fake
+  "Book Now" appointment slots are shown since there's no booking system;
+  "Call" and "Directions" are both real actions.
+- **Texture / Pigment notes on the results page** — real, generated by Gemini
+  looking directly at the uploaded photo alongside the classification result
+  (see `generate_report` in `backend/app/services/gemini_report.py`), not a
+  separate scoring model and not static text.
+- **Support contact form** — no backend endpoint receives it; submitting opens
+  the user's email client via `mailto:` with the message pre-filled
+  (`js/support.js`). Swap `SUPPORT_EMAIL` there for the team's real inbox.

@@ -1,8 +1,11 @@
 """Finds nearby dermatology clinics/hospitals via the Google Places API (New).
 
-Requires the GOOGLE_PLACES_API_KEY env var. Field mask is deliberately limited to
-Nearby Search Pro-tier fields (cheaper) -- avoid adding rating, currentOpeningHours,
-or other Enterprise-tier fields without checking their billing SKU first.
+Requires the GOOGLE_PLACES_API_KEY env var. Field mask intentionally includes
+rating, userRatingCount, currentOpeningHours, and nationalPhoneNumber, which bill
+under the pricier Nearby Search Enterprise + Enterprise Atmosphere SKUs (not the
+cheaper Pro tier) -- this is a deliberate choice to support real ratings/hours/call
+in the UI. Drop them back to Pro-tier fields (see git history) if that cost stops
+being worth it.
 """
 from __future__ import annotations
 
@@ -17,7 +20,9 @@ from app.schemas.hospitals import Hospital
 SEARCH_URL = "https://places.googleapis.com/v1/places:searchNearby"
 FIELD_MASK = (
     "places.displayName,places.formattedAddress,places.location,"
-    "places.businessStatus,places.googleMapsUri"
+    "places.businessStatus,places.googleMapsUri,"
+    "places.rating,places.userRatingCount,"
+    "places.currentOpeningHours,places.nationalPhoneNumber"
 )
 EARTH_RADIUS_M = 6371000
 
@@ -55,6 +60,7 @@ async def find_nearby(lat: float, lng: float, radius_m: float) -> list[Hospital]
     for place in response.json().get("places", []):
         location = place.get("location", {})
         place_lat, place_lng = location.get("latitude"), location.get("longitude")
+        opening_hours = place.get("currentOpeningHours") or {}
         hospitals.append(
             Hospital(
                 name=place.get("displayName", {}).get("text", ""),
@@ -64,6 +70,11 @@ async def find_nearby(lat: float, lng: float, radius_m: float) -> list[Hospital]
                 distance_m=_distance_m(lat, lng, place_lat, place_lng),
                 business_status=place.get("businessStatus"),
                 google_maps_url=place.get("googleMapsUri", ""),
+                rating=place.get("rating"),
+                user_rating_count=place.get("userRatingCount"),
+                open_now=opening_hours.get("openNow"),
+                weekday_hours=opening_hours.get("weekdayDescriptions"),
+                phone=place.get("nationalPhoneNumber"),
             )
         )
 

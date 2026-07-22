@@ -13,7 +13,7 @@
   <div class="app-frame">
     <header class="topbar">
       <div class="topbar-left">
-        <img class="topbar-logo" src="assets/images/logo.png" alt="">
+        <img class="topbar-logo" src="assets/images/logo-icon.png" alt="">
         <span class="topbar-title">Dermalyze</span>
       </div>
       <button class="avatar-btn" data-account-btn aria-label="Account">
@@ -27,27 +27,47 @@
         <h1 class="text-headline-md" style="margin: 2px 0 0;" data-username>there</h1>
       </div>
 
-      <a href="body-part.html" class="card" style="display:flex; align-items:center; gap:16px; text-decoration:none; border-color: var(--primary-container);">
-        <div style="width:56px; height:56px; border-radius: var(--radius-lg); background: color-mix(in srgb, var(--primary-container) 18%, transparent); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-          <span class="material-symbols-outlined icon-filled text-primary" style="font-size:30px;">add_a_photo</span>
-        </div>
-        <div style="flex:1;">
-          <h2 class="text-headline-sm" style="margin:0 0 2px;">Start a new scan</h2>
-          <p class="text-body-md text-on-surface-variant" style="margin:0;">Select a body area, upload a photo, get an AI read</p>
-        </div>
-        <span class="material-symbols-outlined text-outline">chevron_right</span>
-      </a>
+      <div class="dash-hero">
+        <h2>Start a new skin analysis</h2>
+        <p>Use our AI-powered scanner to identify potential concerns early.</p>
+        <a href="body-part.html" class="btn">
+          Analyze Skin
+          <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
+        </a>
+      </div>
 
-      <a href="hospitals.html" class="card" style="display:flex; align-items:center; gap:16px; text-decoration:none;">
-        <div style="width:56px; height:56px; border-radius: var(--radius-lg); background: var(--surface-container-high); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-          <span class="material-symbols-outlined text-primary" style="font-size:30px;">medical_services</span>
+      <div class="stat-row">
+        <div class="stat-tile">
+          <span class="stat-label">Scans</span>
+          <span class="stat-value" id="stat-scans">0</span>
         </div>
-        <div style="flex:1;">
-          <h2 class="text-headline-sm" style="margin:0 0 2px;">Find a dermatologist</h2>
-          <p class="text-body-md text-on-surface-variant" style="margin:0;">Nearby clinics, sorted by distance</p>
+        <div class="stat-tile">
+          <span class="stat-label">Latest</span>
+          <span class="stat-value" id="stat-latest">—</span>
         </div>
-        <span class="material-symbols-outlined text-outline">chevron_right</span>
-      </a>
+        <div class="stat-tile">
+          <span class="stat-label">Status</span>
+          <span class="stat-value" id="stat-status">—</span>
+        </div>
+      </div>
+
+      <section style="display:flex; flex-direction:column; gap: var(--stack-gap);">
+        <div class="section-head">
+          <h3>Recent activity</h3>
+          <button type="button" class="link hidden" id="see-all-btn">See all</button>
+        </div>
+        <div id="activity-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+        <div id="activity-empty" class="state-panel hidden" style="padding: 24px 16px;">
+          <span class="material-symbols-outlined">history</span>
+          <h3>No scans yet</h3>
+          <p>Your completed skin analyses will show up here.</p>
+        </div>
+      </section>
+
+      <div class="tip-card">
+        <span class="icon-badge"><span class="material-symbols-outlined" style="font-size:18px;">lightbulb</span></span>
+        <p><strong>Tip:</strong> Use SPF 30+ daily to protect your skin from UV damage.</p>
+      </div>
 
       <div class="disclaimer">
         <span class="material-symbols-outlined">info</span>
@@ -75,8 +95,7 @@
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/nav.js"></script>
-  <script>
-    requireAuth();
-  </script>
+  <script src="js/history.js"></script>
+  <script src="js/dashboard.js"></script>
 </body>
 </html>

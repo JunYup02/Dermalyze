@@ -16,7 +16,7 @@
         <button class="icon-btn" data-nav-back="body-part.html" aria-label="Go back">
           <span class="material-symbols-outlined">arrow_back</span>
         </button>
-        <img class="topbar-logo" src="assets/images/logo.png" alt="">
+        <img class="topbar-logo" src="assets/images/logo-icon.png" alt="">
         <span class="topbar-title">Dermalyze</span>
       </div>
       <button class="avatar-btn" data-account-btn aria-label="Account">
@@ -25,13 +25,12 @@
     </header>
 
     <main class="screen" style="padding-bottom: 100px;">
-      <div class="stepper">
-        <div class="stepper-row">
-          <span class="text-label-md text-primary uppercase-label">Step 2 of 3 — Photo</span>
-          <span class="text-label-sm text-outline">67%</span>
-        </div>
-        <div class="stepper-track"><div class="stepper-fill" style="width: 67%;"></div></div>
-      </div>
+      <nav class="circle-stepper" aria-label="Progress">
+        <div class="circle-step done"><span class="dot"><span class="material-symbols-outlined" style="font-size:16px;">check</span></span><span class="step-label">Account</span></div>
+        <div class="circle-step done"><span class="dot"><span class="material-symbols-outlined" style="font-size:16px;">check</span></span><span class="step-label">Body Part</span></div>
+        <div class="circle-step current"><span class="dot">3</span><span class="step-label">Capture</span></div>
+        <div class="circle-step"><span class="dot">4</span><span class="step-label">Review</span></div>
+      </nav>
 
       <div id="region-chip" class="badge badge-success" style="align-self:flex-start;">
         <span class="material-symbols-outlined" style="font-size:16px;">location_on</span>
@@ -77,15 +76,21 @@
       </section>
 
       <section style="display:flex; flex-direction:column; gap: var(--stack-gap);">
-        <h3 class="text-label-md text-outline uppercase-label" style="margin:0;">Before you shoot</h3>
+        <h3 class="text-label-md text-outline uppercase-label" style="margin:0;">Quality comparison</h3>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-          <div class="card-soft" style="border-radius: var(--radius-lg); padding: 14px; display:flex; flex-direction:column; gap:8px; align-items:flex-start;">
-            <span class="material-symbols-outlined icon-filled text-primary">check_circle</span>
-            <p class="text-body-md" style="margin:0;">Bright, even lighting; camera held steady and in focus</p>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="position:relative; border-radius: var(--radius-xl); overflow:hidden; border: 2px solid var(--primary-container); aspect-ratio: 2/3;">
+              <img src="assets/images/example-good.jpg" alt="Good example: clear, well-lit close-up" style="width:100%; height:100%; object-fit:cover;">
+              <span class="material-symbols-outlined icon-filled" style="position:absolute; bottom:8px; right:8px; background:#fff; color: var(--primary); border-radius:50%; padding:2px; font-size:22px;">check_circle</span>
+            </div>
+            <p class="text-label-md text-primary" style="text-align:center; margin:0;">Good example</p>
           </div>
-          <div class="card-soft" style="border-radius: var(--radius-lg); padding: 14px; display:flex; flex-direction:column; gap:8px; align-items:flex-start; background: var(--error-container); border-color: transparent;">
-            <span class="material-symbols-outlined icon-filled text-error">cancel</span>
-            <p class="text-body-md" style="margin:0; color: var(--on-error-container);">Blurry, dark, or shadowed shots — retake if in doubt</p>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="position:relative; border-radius: var(--radius-xl); overflow:hidden; border: 2px solid var(--error); aspect-ratio: 2/3; filter: grayscale(0.3);">
+              <img src="assets/images/example-bad.jpg" alt="Bad example: blurry, dark, unfocused" style="width:100%; height:100%; object-fit:cover;">
+              <span class="material-symbols-outlined icon-filled" style="position:absolute; bottom:8px; right:8px; background:#fff; color: var(--error); border-radius:50%; padding:2px; font-size:22px;">cancel</span>
+            </div>
+            <p class="text-label-md text-error" style="text-align:center; margin:0;">Bad example</p>
           </div>
         </div>
       </section>

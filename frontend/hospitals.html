@@ -16,7 +16,7 @@
         <button class="icon-btn" data-nav-back="dashboard.html" aria-label="Go back">
           <span class="material-symbols-outlined">arrow_back</span>
         </button>
-        <span class="topbar-title">Nearby dermatologists</span>
+        <span class="topbar-title">Clinics</span>
       </div>
       <button class="avatar-btn" data-account-btn aria-label="Account">
         <span class="material-symbols-outlined">account_circle</span>
@@ -24,16 +24,45 @@
     </header>
 
     <main class="screen">
+      <div id="urgent-banner" class="card hidden" style="border: none; display:flex; gap:12px; align-items:flex-start;">
+        <span class="material-symbols-outlined" id="urgent-banner-icon">emergency</span>
+        <div>
+          <p class="text-label-md" id="urgent-banner-eyebrow" style="margin:0 0 2px; text-transform:uppercase;">Attention needed</p>
+          <p style="margin:0 0 4px; font-weight:700;" id="urgent-banner-title">—</p>
+          <p style="margin:0; font-size:13px;" id="urgent-banner-sub">We recommend seeing a dermatologist soon.</p>
+        </div>
+      </div>
+
+      <div>
+        <h1 class="text-headline-sm" style="margin:0 0 4px;">Find a dermatologist near you</h1>
+        <p class="text-body-md text-outline" id="location-label" style="margin:0;">Using your current location</p>
+      </div>
+
+      <div class="search-input-wrap">
+        <span class="material-symbols-outlined">search</span>
+        <input type="text" id="search-input" placeholder="Filter results by name…">
+      </div>
+
+      <div class="filter-row">
+        <button type="button" class="filter-chip active" data-radius="3000">3 km</button>
+        <button type="button" class="filter-chip" data-radius="1500">1.5 km</button>
+        <button type="button" class="filter-chip" data-radius="7000">7 km</button>
+        <button type="button" class="filter-chip" data-radius="10000">10 km</button>
+        <button type="button" class="filter-chip" id="open-now-chip">
+          <span class="material-symbols-outlined" style="font-size:14px;">schedule</span>
+          Open now
+        </button>
+        <button type="button" class="filter-chip" id="top-rated-chip">
+          <span class="material-symbols-outlined" style="font-size:14px;">star</span>
+          Top rated
+        </button>
+      </div>
+
+      <div id="map-frame" class="map-frame hidden"></div>
+
       <div id="location-banner" class="banner banner-error hidden">
         <span class="material-symbols-outlined">location_off</span>
         <span></span>
-      </div>
-
-      <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:2px;">
-        <button type="button" class="radius-chip" data-radius="1500" style="white-space:nowrap; padding:8px 16px; border-radius:999px; border:1px solid var(--outline-variant); background:var(--surface-container-lowest); font-size:13px; font-weight:600; color:var(--on-surface-variant); cursor:pointer;">1.5 km</button>
-        <button type="button" class="radius-chip active" data-radius="3000" style="white-space:nowrap; padding:8px 16px; border-radius:999px; border:1px solid var(--primary); background:var(--primary); color:var(--on-primary); font-size:13px; font-weight:600; cursor:pointer;">3 km</button>
-        <button type="button" class="radius-chip" data-radius="7000" style="white-space:nowrap; padding:8px 16px; border-radius:999px; border:1px solid var(--outline-variant); background:var(--surface-container-lowest); font-size:13px; font-weight:600; color:var(--on-surface-variant); cursor:pointer;">7 km</button>
-        <button type="button" class="radius-chip" data-radius="10000" style="white-space:nowrap; padding:8px 16px; border-radius:999px; border:1px solid var(--outline-variant); background:var(--surface-container-lowest); font-size:13px; font-weight:600; color:var(--on-surface-variant); cursor:pointer;">10 km</button>
       </div>
 
       <div id="clinics-state" class="state-panel">

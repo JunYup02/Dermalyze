@@ -16,7 +16,8 @@
         <button class="icon-btn" data-nav-back="dashboard.html" aria-label="Go back">
           <span class="material-symbols-outlined">arrow_back</span>
         </button>
-        <span class="topbar-title">Support</span>
+        <img class="topbar-logo" src="assets/images/logo-icon.png" alt="">
+        <span class="topbar-title">Dermalyze</span>
       </div>
       <button class="avatar-btn" data-account-btn aria-label="Account">
         <span class="material-symbols-outlined">account_circle</span>
@@ -24,43 +25,84 @@
     </header>
 
     <main class="screen">
-      <div class="card">
-        <h2 class="text-headline-sm" style="margin:0 0 6px;">How Dermalyze works</h2>
-        <div style="display:flex; flex-direction:column; gap:14px; margin-top:12px;">
-          <div style="display:flex; gap:12px;">
-            <span class="material-symbols-outlined text-primary">looks_one</span>
-            <p class="text-body-md" style="margin:0;">Pick the body area the lesion is on, front or back.</p>
-          </div>
-          <div style="display:flex; gap:12px;">
-            <span class="material-symbols-outlined text-primary">looks_two</span>
-            <p class="text-body-md" style="margin:0;">Upload or photograph a clear, well-lit close-up.</p>
-          </div>
-          <div style="display:flex; gap:12px;">
-            <span class="material-symbols-outlined text-primary">looks_3</span>
-            <p class="text-body-md" style="margin:0;">The photo is classified by a Vertex AI image model, and Gemini writes a plain-language summary of the result.</p>
-          </div>
-          <div style="display:flex; gap:12px;">
-            <span class="material-symbols-outlined text-primary">looks_4</span>
-            <p class="text-body-md" style="margin:0;">For higher-risk results, Dermalyze can look up nearby dermatology clinics using your device location.</p>
-          </div>
-        </div>
+      <div>
+        <h1 class="text-headline-md" style="margin:0 0 4px;">How can we help you?</h1>
       </div>
 
-      <div class="card">
-        <h2 class="text-headline-sm" style="margin:0 0 6px;">Frequently asked</h2>
-        <details style="margin-top:10px;">
-          <summary class="text-body-lg" style="cursor:pointer; font-weight:600;">Is this a medical diagnosis?</summary>
-          <p class="text-body-md text-on-surface-variant" style="margin: 8px 0 0;">No. Dermalyze is an informational AI tool, not a substitute for a licensed dermatologist. Always seek professional care for any concerning lesion.</p>
-        </details>
-        <details style="margin-top:14px;">
-          <summary class="text-body-lg" style="cursor:pointer; font-weight:600;">Why does the analysis sometimes fail?</summary>
-          <p class="text-body-md text-on-surface-variant" style="margin: 8px 0 0;">The classification step calls a Vertex AI endpoint that has to be deployed and configured by the Dermalyze team. If it isn't connected yet, you'll see a clear notice on the upload screen instead of a broken result.</p>
-        </details>
-        <details style="margin-top:14px;">
-          <summary class="text-body-lg" style="cursor:pointer; font-weight:600;">Is my photo stored?</summary>
-          <p class="text-body-md text-on-surface-variant" style="margin: 8px 0 0;">Your photo is sent directly to the analysis endpoint for classification. It is not saved to your account or displayed to other users.</p>
-        </details>
+      <div class="search-input-wrap">
+        <span class="material-symbols-outlined">search</span>
+        <input type="text" id="faq-search" placeholder="Search for help articles">
       </div>
+
+      <section style="display:flex; flex-direction:column; gap: var(--stack-gap);">
+        <h3 class="text-label-md text-outline uppercase-label" style="margin:0;">Frequently asked questions</h3>
+
+        <div class="faq-group" id="faq-list">
+          <details class="faq-item" data-q="getting started how does dermalyze work select body area photo">
+            <summary>Getting started<span class="material-symbols-outlined">expand_more</span></summary>
+            <div class="faq-body">
+              <ol style="margin:0; padding-left: 18px; display:flex; flex-direction:column; gap:6px;">
+                <li>Pick the body area the lesion is on, front or back.</li>
+                <li>Upload or photograph a clear, well-lit close-up.</li>
+                <li>The photo is classified by a Vertex AI image model, and Gemini writes a plain-language summary.</li>
+                <li>For higher-risk results, Dermalyze can look up nearby dermatology clinics using your device location.</li>
+              </ol>
+            </div>
+          </details>
+
+          <details class="faq-item" data-q="understanding results diagnosis risk level texture pigment fail vertex">
+            <summary>Understanding your results<span class="material-symbols-outlined">expand_more</span></summary>
+            <div class="faq-body">
+              <p style="margin:0 0 10px;"><strong>Is this a medical diagnosis?</strong> No. Dermalyze is an informational AI tool, not a substitute for a licensed dermatologist. Always seek professional care for any concerning lesion.</p>
+              <p style="margin:0 0 10px;"><strong>What do "Texture" and "Pigment" mean?</strong> They're short, AI-generated observations about the photo's border/texture and color pattern — grounded in what's visible in your specific image, not a separate diagnostic score.</p>
+              <p style="margin:0;"><strong>Why does the analysis sometimes fail?</strong> Classification calls a Vertex AI endpoint that has to be deployed and configured by the Dermalyze team. If it isn't connected yet, the upload screen shows a clear notice instead of a broken result.</p>
+            </div>
+          </details>
+
+          <details class="faq-item" data-q="privacy data photo stored account history">
+            <summary>Privacy and data<span class="material-symbols-outlined">expand_more</span></summary>
+            <div class="faq-body">
+              <p style="margin:0 0 10px;"><strong>Is my photo stored?</strong> Your photo is sent directly to the analysis endpoint for classification. It isn't uploaded anywhere else or shown to other users.</p>
+              <p style="margin:0;"><strong>Where does "Recent activity" on my dashboard come from?</strong> It's saved locally in this browser only, from analyses you've completed here — it doesn't sync across devices.</p>
+            </div>
+          </details>
+
+          <details class="faq-item" data-q="account settings password logout device">
+            <summary>Account settings<span class="material-symbols-outlined">expand_more</span></summary>
+            <div class="faq-body">
+              <p style="margin:0;">Tap the account icon in the top-right corner of any screen to log out. "Keep me logged in on this device" on the login screen controls whether your session survives closing the browser.</p>
+            </div>
+          </details>
+        </div>
+        <p id="faq-empty" class="text-body-md text-outline hidden" style="text-align:center; padding: 8px;">No articles match your search.</p>
+      </section>
+
+      <section class="card">
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:6px;">
+          <span class="material-symbols-outlined text-primary">help</span>
+          <h3 class="text-headline-sm" style="margin:0;">Still need help?</h3>
+        </div>
+        <p class="text-body-md text-on-surface-variant" style="margin:0 0 16px;">Can't find what you're looking for? Send us a message — this opens your email app with the details pre-filled.</p>
+
+        <form id="contact-form" style="display:flex; flex-direction:column; gap:14px;">
+          <div class="field">
+            <label for="contact-name">Name</label>
+            <input id="contact-name" type="text" placeholder="Enter your full name" style="height:44px; padding: 0 14px; border-radius: var(--radius-lg); border: 1px solid var(--outline-variant); font-size:14px;" required>
+          </div>
+          <div class="field">
+            <label for="contact-email">Email</label>
+            <input id="contact-email" type="email" placeholder="you@example.com" style="height:44px; padding: 0 14px; border-radius: var(--radius-lg); border: 1px solid var(--outline-variant); font-size:14px;" required>
+          </div>
+          <div class="field">
+            <label for="contact-message">Message</label>
+            <textarea id="contact-message" placeholder="How can we help?" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">
+            <span class="material-symbols-outlined" style="font-size:18px;">send</span>
+            Send message
+          </button>
+        </form>
+      </section>
 
       <div class="disclaimer">
         <span class="material-symbols-outlined">info</span>
@@ -88,8 +130,6 @@
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/nav.js"></script>
-  <script>
-    requireAuth();
-  </script>
+  <script src="js/support.js"></script>
 </body>
 </html>

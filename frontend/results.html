@@ -32,12 +32,12 @@
 
     <main class="screen">
       <div id="result-content" class="hidden" style="display:flex; flex-direction:column; gap: var(--section-gap);">
-        <div class="stepper">
-          <div class="stepper-row">
-            <span class="text-label-sm text-outline uppercase-label">Step 3 of 3 — Result</span>
-          </div>
-          <div class="stepper-track"><div id="stepper-fill" class="stepper-fill" style="width:100%;"></div></div>
-        </div>
+        <nav class="circle-stepper" aria-label="Progress">
+          <div class="circle-step done"><span class="dot"><span class="material-symbols-outlined" style="font-size:16px;">check</span></span><span class="step-label">Account</span></div>
+          <div class="circle-step done"><span class="dot"><span class="material-symbols-outlined" style="font-size:16px;">check</span></span><span class="step-label">Body Part</span></div>
+          <div class="circle-step done"><span class="dot"><span class="material-symbols-outlined" style="font-size:16px;">check</span></span><span class="step-label">Capture</span></div>
+          <div class="circle-step current"><span class="dot">4</span><span class="step-label">Review</span></div>
+        </nav>
 
         <div id="image-section" class="hidden" style="position:relative;">
           <div class="preview-frame">
@@ -60,9 +60,20 @@
               <span class="gauge-label" id="gauge-label">—</span>
             </div>
           </div>
-          <div id="risk-badge" class="badge"></div>
+          <div id="risk-badge" class="risk-pill" style="font-size:13px; padding:8px 16px;"></div>
 
           <p class="quote-line" id="gemini-report" style="width:100%; margin: 8px 0 0;"></p>
+
+          <div class="note-grid" style="width:100%;">
+            <div class="note-card">
+              <span class="note-label"><span class="material-symbols-outlined" style="font-size:16px;">texture</span>Texture</span>
+              <p id="texture-note"></p>
+            </div>
+            <div class="note-card">
+              <span class="note-label"><span class="material-symbols-outlined" style="font-size:16px;">palette</span>Pigment</span>
+              <p id="pigment-note"></p>
+            </div>
+          </div>
 
           <div id="rank-section" style="width:100%; display:none; flex-direction:column; gap:8px;">
             <h3 class="text-label-md text-outline uppercase-label" style="margin: 8px 0 0;">Other candidates considered</h3>
@@ -75,7 +86,7 @@
           <div style="display:flex; flex-direction:column; gap:12px;">
             <a id="clinic-cta" href="hospitals.html" class="btn btn-danger hidden">
               <span class="material-symbols-outlined">calendar_month</span>
-              Find a dermatologist nearby
+              <span id="clinic-cta-label">Find a dermatologist nearby</span>
             </a>
             <button id="print-btn" class="btn btn-outline">
               <span class="material-symbols-outlined">picture_as_pdf</span>
@@ -110,7 +121,7 @@
         <span class="material-symbols-outlined">dashboard</span>
         <span class="label">Dashboard</span>
       </a>
-      <a class="nav-item active" href="hospitals.html">
+      <a class="nav-item" href="hospitals.html">
         <span class="material-symbols-outlined">medical_services</span>
         <span class="label">Clinics</span>
       </a>
@@ -125,6 +136,7 @@
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/nav.js"></script>
+  <script src="js/history.js"></script>
   <script src="js/results.js"></script>
 </body>
 </html>

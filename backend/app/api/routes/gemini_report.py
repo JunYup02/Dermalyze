@@ -12,5 +12,10 @@ router = APIRouter()
 async def create_gemini_report(file: UploadFile = File(...)):
     image = await load_upload_image(file)
     predictions = classify(image)
-    report = generate_report(predictions)
-    return GeminiReportResponse(predictions=predictions, report=report)
+    result = generate_report(predictions, image)
+    return GeminiReportResponse(
+        predictions=predictions,
+        report=result.report,
+        texture_note=result.texture_note,
+        pigment_note=result.pigment_note,
+    )
