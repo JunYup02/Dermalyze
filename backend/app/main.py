@@ -32,4 +32,7 @@ app.include_router(api_router)
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    # RENDER_GIT_COMMIT is set automatically by Render for git-deployed services --
+    # exposing it here is the only reliable way to confirm which commit is actually
+    # live, since Render's own dashboard isn't reachable from this environment.
+    return {"status": "ok", "git_commit": os.getenv("RENDER_GIT_COMMIT", "unknown")}
