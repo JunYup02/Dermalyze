@@ -13,10 +13,15 @@ const errorEl = document.getElementById("body-part-error");
 const nextBtn = document.getElementById("next-step-btn");
 
 // Approximate hotspot positions (percent of silhouette image bounds), read off the
-// real illustration assets in assets/images/silhouette-{front,back}.png. Arms carry a
-// `side` so left/right can be selected (and labeled) separately, even though the
-// backend's BodyRegion enum only knows the bare "arms" key -- side is frontend-only
-// display metadata, not sent to the API. Other left/right pairs still share one key.
+// real illustration assets in assets/images/silhouette-{front,back}.png. Every
+// left/right pair carries a `side` so each half can be selected (and labeled)
+// separately, even though the backend's BodyRegion enum only knows the bare key
+// ("arms"/"hands"/"legs"/"feet") -- side is frontend-only display metadata, not
+// sent to the API.
+//
+// Side convention (confirmed against the Stitch "Select Location - Left/Right
+// Split" mockup): screen-left is always labeled "Left X" and screen-right "Right
+// X", on both front and back views -- not anatomically mirrored for the front view.
 //
 // silhouette-back.png used to be a 500x500 canvas with the figure only filling a
 // small centered box (this file was re-cropped to its content bounding box so it
@@ -27,14 +32,14 @@ const HOTSPOTS = {
     { key: "scalp_face", x: 50, y: 10 },
     { key: "neck", x: 50, y: 19 },
     { key: "torso", x: 50, y: 37 },
-    { key: "arms", side: "left", x: 83, y: 40 },
-    { key: "arms", side: "right", x: 17, y: 40 },
-    { key: "hands", x: 12, y: 55 },
-    { key: "hands", x: 88, y: 55 },
-    { key: "legs", x: 42, y: 73 },
-    { key: "legs", x: 58, y: 73 },
-    { key: "feet", x: 42, y: 94 },
-    { key: "feet", x: 58, y: 94 },
+    { key: "arms", side: "left", x: 17, y: 40 },
+    { key: "arms", side: "right", x: 83, y: 40 },
+    { key: "hands", side: "left", x: 12, y: 55 },
+    { key: "hands", side: "right", x: 88, y: 55 },
+    { key: "legs", side: "left", x: 42, y: 73 },
+    { key: "legs", side: "right", x: 58, y: 73 },
+    { key: "feet", side: "left", x: 42, y: 94 },
+    { key: "feet", side: "right", x: 58, y: 94 },
   ],
   back: [
     { key: "scalp_face", x: 50, y: 8 },
@@ -42,25 +47,32 @@ const HOTSPOTS = {
     { key: "torso", x: 50, y: 36 },
     { key: "arms", side: "left", x: 18, y: 42 },
     { key: "arms", side: "right", x: 82, y: 42 },
-    { key: "hands", x: 12, y: 57 },
-    { key: "hands", x: 88, y: 57 },
-    { key: "legs", x: 43, y: 73 },
-    { key: "legs", x: 57, y: 73 },
-    { key: "feet", x: 43, y: 96 },
-    { key: "feet", x: 57, y: 96 },
+    { key: "hands", side: "left", x: 12, y: 57 },
+    { key: "hands", side: "right", x: 88, y: 57 },
+    { key: "legs", side: "left", x: 43, y: 73 },
+    { key: "legs", side: "right", x: 57, y: 73 },
+    { key: "feet", side: "left", x: 43, y: 96 },
+    { key: "feet", side: "right", x: 57, y: 96 },
   ],
 };
 
 let regions = [];
 let regionLabel = {};
 
+// Regular pluralization (Arms -> Arm, Hands -> Hand, Legs -> Leg) doesn't cover
+// "Feet", the one irregular plural among the backend's region labels.
+function singularize(label) {
+  if (label === "Feet") return "Foot";
+  return label.replace(/s$/, "");
+}
+
 function labelFor(key, side) {
   // "torso" reads as "Back" once looking at the back view (matches the backend's
   // normalize_body_part: back + torso -> "back").
   if (state.view === "back" && key === "torso") return "Back";
   const base = regionLabel[key] || key;
-  if (side === "left") return `Left ${base.replace(/s$/, "")}`;
-  if (side === "right") return `Right ${base.replace(/s$/, "")}`;
+  if (side === "left") return `Left ${singularize(base)}`;
+  if (side === "right") return `Right ${singularize(base)}`;
   return base;
 }
 

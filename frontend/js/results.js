@@ -99,12 +99,19 @@ function render(data) {
   if (data.imageDataUrl) {
     document.getElementById("image-section").classList.remove("hidden");
     document.getElementById("result-img").src = data.imageDataUrl;
+    // High-risk findings get a red pulsing alert border on the photo itself.
+    document.getElementById("preview-frame").classList.toggle("risk-high", risk === "high");
   }
   document.getElementById("result-region-label").textContent = data.bodyPart?.label || "—";
 
   document.getElementById("result-classification").textContent = `${info.label} — ${pct}%`;
   document.getElementById("result-subtitle").textContent = RISK_COPY[risk].subtitle;
   document.getElementById("result-ref").textContent = `Ref: #${refCode}`;
+
+  // High-risk results get a red-tinted card + note cards, matching the Stitch
+  // high-risk mockup's all-red treatment (image border, cards, urgent button).
+  document.getElementById("result-card").classList.toggle("risk-high", risk === "high");
+  document.getElementById("note-grid").classList.toggle("risk-high", risk === "high");
 
   const badge = document.getElementById("risk-badge");
   badge.classList.add(risk);
