@@ -33,29 +33,32 @@
         </nav>
 
         <div id="image-section" class="hidden" style="position:relative;">
-          <div class="preview-frame">
+          <div class="preview-frame" id="preview-frame">
             <img id="result-img" alt="Analyzed lesion photo">
           </div>
           <div class="preview-badge" style="position:absolute; top:12px; left:12px;">
             <span class="material-symbols-outlined" style="font-size:16px;">location_on</span>
             <span id="result-region-label">—</span>
           </div>
+          <div id="preview-alert-badge" class="preview-alert-badge hidden">
+            <span class="material-symbols-outlined" style="font-size:14px;">zoom_in</span>
+            <span>Enlarged view</span>
+          </div>
         </div>
 
-        <section class="card" style="display:flex; flex-direction:column; align-items:center; gap: var(--stack-gap);">
-          <div class="gauge-wrap">
-            <svg viewBox="0 0 36 36">
-              <circle class="gauge-track" cx="18" cy="18" r="16" fill="none" stroke-width="2.5"></circle>
-              <circle id="gauge-fill" class="gauge-fill" cx="18" cy="18" r="16" fill="none" stroke-width="2.5" stroke-dasharray="0, 100"></circle>
-            </svg>
-            <div class="gauge-center">
-              <span class="gauge-percent" id="gauge-percent">—</span>
-              <span class="gauge-label" id="gauge-label">—</span>
+        <section class="card" style="display:flex; flex-direction:column; gap: var(--stack-gap);">
+          <div class="result-heading-row">
+            <div class="result-heading-text">
+              <h2 id="result-classification" class="result-classification">—</h2>
+              <p id="result-subtitle" class="result-subtitle"></p>
+            </div>
+            <div class="result-heading-side">
+              <div id="risk-badge" class="risk-pill" style="font-size:12px; padding:6px 12px;"></div>
+              <span id="result-ref" class="result-ref"></span>
             </div>
           </div>
-          <div id="risk-badge" class="risk-pill" style="font-size:13px; padding:8px 16px;"></div>
 
-          <p class="quote-line" id="gemini-report" style="width:100%; margin: 8px 0 0;"></p>
+          <p class="quote-line" id="gemini-report" style="width:100%; margin: 4px 0 0;"></p>
 
           <div class="note-grid" style="width:100%;">
             <div class="note-card">
@@ -74,6 +77,11 @@
           </div>
         </section>
 
+        <div id="result-success" class="result-success hidden">
+          <span class="material-symbols-outlined">sentiment_very_satisfied</span>
+          <span>Your results look good</span>
+        </div>
+
         <section id="next-steps" style="display:flex; flex-direction:column; gap: var(--stack-gap);">
           <h3 class="text-headline-sm" style="margin:0;">Recommended next steps</h3>
 
@@ -87,8 +95,8 @@
           </div>
 
           <div style="display:flex; flex-direction:column; gap:12px;">
-            <a id="clinic-cta" href="hospitals.html" class="btn btn-danger hidden">
-              <span class="material-symbols-outlined">calendar_month</span>
+            <a id="clinic-cta" href="hospitals.html" class="btn hidden">
+              <span id="clinic-cta-icon" class="material-symbols-outlined">calendar_month</span>
               <span id="clinic-cta-label">Find a dermatologist nearby</span>
             </a>
             <button id="print-btn" class="btn btn-outline">

@@ -148,7 +148,7 @@ analyzeBtn.addEventListener("click", async () => {
 
   try {
     const result = await Api.createGeminiReport(selectedFile);
-    const payload = { ...result, bodyPart };
+    const payload = { ...result, bodyPart, refCode: "DZ-" + Date.now().toString(36).toUpperCase() };
 
     try {
       sessionStorage.setItem("dermalyze_result", JSON.stringify({ ...payload, imageDataUrl: selectedDataUrl }));
@@ -165,15 +165,16 @@ analyzeBtn.addEventListener("click", async () => {
       const demoPayload = {
         bodyPart,
         isDemo: true,
+        refCode: "DZ-" + Date.now().toString(36).toUpperCase(),
         predictions: [
           { id: "demo-nv", name: "nv", probability: 0.82 },
           { id: "demo-bkl", name: "bkl", probability: 0.11 },
           { id: "demo-mel", name: "mel", probability: 0.07 },
         ],
         report:
-          "실제 분석 모델(Vertex AI)이 아직 연결되지 않아 이 결과는 예시(데모) 데이터입니다. 엔드포인트가 배포되고 나면 실제 분석 결과가 표시됩니다.",
-        texture_note: "데모 데이터 — 실제 이미지 분석 결과가 아닙니다.",
-        pigment_note: "데모 데이터 — 실제 이미지 분석 결과가 아닙니다.",
+          "The real analysis model (Vertex AI) isn't connected yet, so this is placeholder (demo) data. Once the endpoint is deployed, real analysis results will be shown here.",
+        texture_note: "Demo data — not a result from real image analysis.",
+        pigment_note: "Demo data — not a result from real image analysis.",
       };
       try {
         sessionStorage.setItem("dermalyze_result", JSON.stringify({ ...demoPayload, imageDataUrl: selectedDataUrl }));

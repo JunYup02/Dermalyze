@@ -22,10 +22,38 @@ const CLASS_INFO = {
 };
 
 const RISK_COPY = {
-  high: { pill: "Higher-risk pattern", icon: "warning" },
-  moderate: { pill: "Moderate-risk pattern", icon: "priority_high" },
-  low: { pill: "Lower-risk pattern", icon: "check_circle" },
+  high: {
+    pill: "Higher-risk pattern",
+    icon: "warning",
+    subtitle: "High risk of malignancy detected. Immediate specialist consultation is recommended.",
+    ctaVariant: "btn-danger",
+    ctaIcon: "emergency",
+    ctaLabel: "Urgent: Find nearest specialist",
+    printLabel: "Download urgent clinical report",
+  },
+  moderate: {
+    pill: "Moderate-risk pattern",
+    icon: "priority_high",
+    subtitle: "We recommend a professional evaluation for this finding.",
+    ctaVariant: "btn-primary",
+    ctaIcon: "calendar_month",
+    ctaLabel: "Book a professional review",
+    printLabel: "Download PDF report",
+  },
+  low: {
+    pill: "Lower-risk pattern",
+    icon: "check_circle",
+    subtitle: "Non-concerning visual patterns detected.",
+    ctaVariant: "btn-outline",
+    ctaIcon: "calendar_month",
+    ctaLabel: "Find a clinic near you",
+    printLabel: "Download PDF report",
+  },
 };
+
+function makeRefCode() {
+  return "DZ-" + Date.now().toString(36).toUpperCase();
+}
 
 function classInfo(prediction) {
   const key = (prediction.name || prediction.id || "").toLowerCase();
@@ -64,24 +92,26 @@ function render(data) {
     contentEl.prepend(demoBanner);
   }
 
-  if (data.imageDataUrl) {
-    document.getElementById("image-section").classList.remove("hidden");
-    document.getElementById("result-img").src = data.imageDataUrl;
-  }
-  document.getElementById("result-region-label").textContent = data.bodyPart?.label || "—";
-
   const sorted = [...data.predictions].sort((a, b) => b.probability - a.probability);
   const top = sorted[0];
   const info = classInfo(top);
   const pct = Math.round(top.probability * 100);
   const risk = info.risk;
+  const refCode = data.refCode || makeRefCode();
 
-  document.getElementById("gauge-percent").textContent = `${pct}%`;
-  document.getElementById("gauge-label").textContent = info.label;
+  if (data.imageDataUrl) {
+    document.getElementById("image-section").classList.remove("hidden");
+    document.getElementById("result-img").src = data.imageDataUrl;
+    // High-risk findings get a pulsing alert border + "enlarged view" badge on the
+    // photo itself, matching the urgency treatment the low/moderate tiers don't use.
+    document.getElementById("preview-frame").classList.toggle("risk-high", risk === "high");
+    document.getElementById("preview-alert-badge").classList.toggle("hidden", risk !== "high");
+  }
+  document.getElementById("result-region-label").textContent = data.bodyPart?.label || "—";
 
-  const fill = document.getElementById("gauge-fill");
-  fill.setAttribute("stroke-dasharray", `${pct}, 100`);
-  fill.classList.add(risk === "high" ? "error" : risk === "moderate" ? "moderate" : "ok");
+  document.getElementById("result-classification").textContent = `${info.label} — ${pct}%`;
+  document.getElementById("result-subtitle").textContent = RISK_COPY[risk].subtitle;
+  document.getElementById("result-ref").textContent = `Ref: #${refCode}`;
 
   const badge = document.getElementById("risk-badge");
   badge.classList.add(risk);
@@ -89,6 +119,8 @@ function render(data) {
     <span class="material-symbols-outlined icon-filled" style="font-size:16px;">${RISK_COPY[risk].icon}</span>
     <span>${RISK_COPY[risk].pill}</span>
   `;
+
+  document.getElementById("result-success").classList.toggle("hidden", risk !== "low");
 
   document.getElementById("gemini-report").textContent =
     data.report || "No written summary was returned for this analysis.";
@@ -113,21 +145,22 @@ function render(data) {
     });
   }
 
+  // Clinic CTA: red/urgent for high risk, teal for moderate, outline for low.
+  const cta = document.getElementById("clinic-cta");
+  cta.classList.remove("hidden", "btn-danger", "btn-primary", "btn-outline");
+  cta.classList.add(RISK_COPY[risk].ctaVariant);
+  document.getElementById("clinic-cta-icon").textContent = RISK_COPY[risk].ctaIcon;
+  document.getElementById("clinic-cta-label").textContent = RISK_COPY[risk].ctaLabel;
+
   if (risk === "high") {
-    // High risk: search automatically instead of waiting for a click.
+    // High risk: also search automatically instead of waiting for a click, in
+    // addition to the urgent CTA above.
     document.getElementById("auto-clinics").classList.remove("hidden");
     autoFetchNearbyClinics();
-  } else {
-    // Moderate: a calmer teal prompt. Low: still offered, just not urgent (outline).
-    const cta = document.getElementById("clinic-cta");
-    cta.classList.remove("hidden");
-    cta.classList.toggle("btn-primary", risk === "moderate");
-    cta.classList.toggle("btn-outline", risk === "low");
-    document.getElementById("clinic-cta-label").textContent =
-      risk === "moderate" ? "Book a professional review" : "Find a clinic near you";
   }
 
-  document.getElementById("print-btn").addEventListener("click", () => downloadPdfReport(data, { info, pct, risk }));
+  document.getElementById("print-btn-label").textContent = RISK_COPY[risk].printLabel;
+  document.getElementById("print-btn").addEventListener("click", () => downloadPdfReport(data, { info, pct, risk, refCode }));
 
   // Save this completed analysis into the (local, per-browser) scan history so it
   // shows up on the dashboard — see js/history.js for why this isn't backend-persisted.
@@ -246,7 +279,7 @@ function loadPdfLibs() {
   return pdfLibsPromise;
 }
 
-async function downloadPdfReport(data, { info, pct, risk }) {
+async function downloadPdfReport(data, { info, pct, risk, refCode }) {
   const btn = document.getElementById("print-btn");
   setButtonBusy(btn, true, "Preparing PDF…");
   try {
@@ -285,7 +318,7 @@ async function downloadPdfReport(data, { info, pct, risk }) {
     heading("Dermalyze Analysis Report", 20);
     doc.setFontSize(10);
     doc.setTextColor(120, 120, 120);
-    doc.text(new Date().toLocaleString(), margin, y);
+    doc.text(`${new Date().toLocaleString()}  ·  Ref: #${refCode}`, margin, y);
     doc.setTextColor(0, 0, 0);
     y += 24;
     rule();
