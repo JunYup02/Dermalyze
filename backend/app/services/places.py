@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import math
+from urllib.parse import quote
 
 import httpx
 from fastapi import HTTPException
@@ -104,7 +105,13 @@ async def find_nearby(lat: float, lng: float, radius_m: float) -> list[Hospital]
                 lat=place_lat,
                 lng=place_lng,
                 distance_m=_distance_m(lat, lng, place_lat, place_lng),
-                google_maps_url=f"https://www.google.com/maps/search/?api=1&query={place_lat},{place_lng}",
+                # Query by name + coords, not bare coords -- a coords-only query makes
+                # Google Maps drop a pin labeled with the lat/lng instead of the clinic
+                # name. Name in the query text is what gets it to show/label correctly.
+                google_maps_url=(
+                    "https://www.google.com/maps/search/?api=1"
+                    f"&query={quote(f'{name} {place_lat},{place_lng}')}"
+                ),
                 phone=tags.get("phone") or tags.get("contact:phone"),
                 opening_hours=tags.get("opening_hours"),
             )

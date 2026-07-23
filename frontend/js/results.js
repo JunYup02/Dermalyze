@@ -23,12 +23,9 @@ const CLASS_INFO = {
 
 const RISK_COPY = {
   high: {
-    pill: "Higher-risk pattern",
+    pill: "High risk skin disease",
     icon: "warning",
     subtitle: "High risk of malignancy detected. Immediate specialist consultation is recommended.",
-    ctaVariant: "btn-danger",
-    ctaIcon: "emergency",
-    ctaLabel: "Urgent: Find nearest specialist",
     printLabel: "Download urgent clinical report",
   },
   moderate: {
@@ -102,10 +99,6 @@ function render(data) {
   if (data.imageDataUrl) {
     document.getElementById("image-section").classList.remove("hidden");
     document.getElementById("result-img").src = data.imageDataUrl;
-    // High-risk findings get a pulsing alert border + "enlarged view" badge on the
-    // photo itself, matching the urgency treatment the low/moderate tiers don't use.
-    document.getElementById("preview-frame").classList.toggle("risk-high", risk === "high");
-    document.getElementById("preview-alert-badge").classList.toggle("hidden", risk !== "high");
   }
   document.getElementById("result-region-label").textContent = data.bodyPart?.label || "—";
 
@@ -127,40 +120,28 @@ function render(data) {
   document.getElementById("texture-note").textContent = data.texture_note || "Not available.";
   document.getElementById("pigment-note").textContent = data.pigment_note || "Not available.";
 
+  // On-screen candidate ranking is intentionally left off the summary card (it's in
+  // the PDF report instead) -- keep the sorted list around for downloadPdfReport.
   const others = sorted.slice(1, 5);
-  if (others.length) {
-    document.getElementById("rank-section").style.display = "flex";
-    const list = document.getElementById("rank-list");
-    others.forEach((p) => {
-      const otherInfo = classInfo(p);
-      const otherPct = Math.round(p.probability * 100);
-      const row = document.createElement("div");
-      row.className = "rank-row";
-      row.innerHTML = `
-        <span class="rank-name">${otherInfo.label}</span>
-        <span class="rank-bar-track"><span class="rank-bar-fill" style="width:${otherPct}%;"></span></span>
-        <span class="rank-pct">${otherPct}%</span>
-      `;
-      list.appendChild(row);
-    });
-  }
-
-  // Clinic CTA: red/urgent for high risk, teal for moderate, outline for low.
-  const cta = document.getElementById("clinic-cta");
-  cta.classList.remove("hidden", "btn-danger", "btn-primary", "btn-outline");
-  cta.classList.add(RISK_COPY[risk].ctaVariant);
-  document.getElementById("clinic-cta-icon").textContent = RISK_COPY[risk].ctaIcon;
-  document.getElementById("clinic-cta-label").textContent = RISK_COPY[risk].ctaLabel;
 
   if (risk === "high") {
-    // High risk: also search automatically instead of waiting for a click, in
-    // addition to the urgent CTA above.
+    // High risk: search automatically instead of a manual CTA. No generic
+    // "find a clinic" button here -- the inline results below are the whole UI.
     document.getElementById("auto-clinics").classList.remove("hidden");
     autoFetchNearbyClinics();
+  } else {
+    // Moderate: a calmer teal prompt. Low: still offered, just not urgent (outline).
+    const cta = document.getElementById("clinic-cta");
+    cta.classList.remove("hidden", "btn-primary", "btn-outline");
+    cta.classList.add(RISK_COPY[risk].ctaVariant);
+    document.getElementById("clinic-cta-icon").textContent = RISK_COPY[risk].ctaIcon;
+    document.getElementById("clinic-cta-label").textContent = RISK_COPY[risk].ctaLabel;
   }
 
   document.getElementById("print-btn-label").textContent = RISK_COPY[risk].printLabel;
-  document.getElementById("print-btn").addEventListener("click", () => downloadPdfReport(data, { info, pct, risk, refCode }));
+  document.getElementById("print-btn").addEventListener("click", () =>
+    downloadPdfReport(data, { info, pct, risk, refCode, others })
+  );
 
   // Save this completed analysis into the (local, per-browser) scan history so it
   // shows up on the dashboard — see js/history.js for why this isn't backend-persisted.
@@ -279,7 +260,14 @@ function loadPdfLibs() {
   return pdfLibsPromise;
 }
 
-async function downloadPdfReport(data, { info, pct, risk, refCode }) {
+// data URL -> the format string jsPDF's addImage() wants, e.g. "data:image/jpeg;..." -> "JPEG".
+function pdfImageFormat(dataUrl) {
+  const match = /^data:image\/(\w+);/.exec(dataUrl || "");
+  const ext = (match?.[1] || "jpeg").toLowerCase();
+  return ext === "jpg" ? "JPEG" : ext.toUpperCase();
+}
+
+async function downloadPdfReport(data, { info, pct, risk, refCode, others }) {
   const btn = document.getElementById("print-btn");
   setButtonBusy(btn, true, "Preparing PDF…");
   try {
@@ -295,10 +283,18 @@ async function downloadPdfReport(data, { info, pct, risk, refCode }) {
 
     const margin = 48;
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     const contentWidth = pageWidth - margin * 2;
     let y = margin;
 
+    function ensureSpace(needed) {
+      if (y + needed > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+      }
+    }
     function heading(text, size) {
+      ensureSpace(size * 1.4);
       doc.setFontSize(size);
       doc.text(text, margin, y);
       y += size * 1.4;
@@ -306,22 +302,38 @@ async function downloadPdfReport(data, { info, pct, risk, refCode }) {
     function paragraph(text, size = 11) {
       doc.setFontSize(size);
       const lines = doc.splitTextToSize(text, contentWidth);
+      ensureSpace(lines.length * size * 1.5 + 10);
       doc.text(lines, margin, y);
       y += lines.length * size * 1.5 + 10;
     }
     function rule() {
+      ensureSpace(18);
       doc.setDrawColor(220, 220, 220);
       doc.line(margin, y, pageWidth - margin, y);
       y += 18;
     }
 
-    heading("Dermalyze Analysis Report", 20);
+    heading("Dermalyze Analysis Report — Full Detail", 20);
     doc.setFontSize(10);
     doc.setTextColor(120, 120, 120);
     doc.text(`${new Date().toLocaleString()}  ·  Ref: #${refCode}`, margin, y);
     doc.setTextColor(0, 0, 0);
     y += 24;
     rule();
+
+    // The analyzed photo, so the report is self-contained without the app open.
+    if (data.imageDataUrl) {
+      try {
+        const imgW = 160;
+        const imgH = 160;
+        ensureSpace(imgH + 12);
+        doc.addImage(data.imageDataUrl, pdfImageFormat(data.imageDataUrl), margin, y, imgW, imgH);
+        y += imgH + 12;
+      } catch {
+        // Some browsers hand back an image format jsPDF can't decode -- the report
+        // is still useful without the photo, so skip it rather than fail the export.
+      }
+    }
 
     paragraph(`Region: ${data.bodyPart?.label || "—"}`, 12);
     paragraph(`Classification: ${info.label} (${pct}%)`, 12);
@@ -342,13 +354,25 @@ async function downloadPdfReport(data, { info, pct, risk, refCode }) {
     heading("Pigment", 13);
     paragraph(data.pigment_note || "Not available.");
 
+    if (others?.length) {
+      heading("Other candidates considered", 13);
+      others.forEach((p) => {
+        const otherInfo = classInfo(p);
+        const otherPct = Math.round(p.probability * 100);
+        paragraph(`${otherInfo.label} — ${otherPct}%`, 11);
+      });
+    }
+
     rule();
     doc.setFontSize(9);
     doc.setTextColor(120, 120, 120);
     const disclaimer = doc.splitTextToSize(
-      "This AI-generated analysis is for informational purposes only and is not a clinical diagnosis. Always consult a licensed dermatologist for medical advice before making any health-related decisions.",
+      "For reference only. This AI-generated analysis is for informational purposes only and is not a " +
+        "clinical diagnosis. Always consult a licensed dermatologist for medical advice before making any " +
+        "health-related decisions.",
       contentWidth
     );
+    ensureSpace(disclaimer.length * 9 * 1.5);
     doc.text(disclaimer, margin, y);
 
     const stamp = new Date().toISOString().slice(0, 10);
