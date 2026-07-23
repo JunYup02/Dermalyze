@@ -9,6 +9,7 @@ field isn't in OSM for a given place, it's just omitted.
 """
 from __future__ import annotations
 
+import asyncio
 import math
 
 import httpx
@@ -16,15 +17,24 @@ from fastapi import HTTPException
 
 from app.schemas.hospitals import Hospital
 
-OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+# The public Overpass instances are free, shared, and prone to intermittent
+# 502/504s under load -- tried in order, falling back to the next mirror
+# instead of failing the whole lookup on one overloaded server.
+OVERPASS_URLS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+]
+REQUEST_TIMEOUT_S = 15
+RETRY_BACKOFF_S = 1
 # hospital/clinic/doctors amenities, plus the newer healthcare=* tagging scheme.
+# nwr (node/way/relation combined) instead of separate node/way clauses per tag
+# halves the number of query branches Overpass has to plan and run, which
+# meaningfully cuts how often the heavier public mirrors time out on this.
 OVERPASS_QUERY = """
 [out:json][timeout:20];
 (
-  node["amenity"~"^(hospital|clinic|doctors)$"](around:{radius},{lat},{lng});
-  way["amenity"~"^(hospital|clinic|doctors)$"](around:{radius},{lat},{lng});
-  node["healthcare"~"^(hospital|clinic|doctor)$"](around:{radius},{lat},{lng});
-  way["healthcare"~"^(hospital|clinic|doctor)$"](around:{radius},{lat},{lng});
+  nwr["amenity"~"^(hospital|clinic|doctors)$"](around:{radius},{lat},{lng});
+  nwr["healthcare"~"^(hospital|clinic|doctor)$"](around:{radius},{lat},{lng});
 );
 out center tags 30;
 """
@@ -49,21 +59,31 @@ def _format_address(tags: dict) -> str:
     return " ".join(p for p in parts if p)
 
 
+async def _query_overpass(query: str) -> dict:
+    last_exc: httpx.HTTPError | None = None
+    async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT_S) as client:
+        for i, url in enumerate(OVERPASS_URLS):
+            try:
+                response = await client.post(
+                    url,
+                    data={"data": query},
+                    headers={"User-Agent": "Dermalyze/1.0 (skin-health assessment app)"},
+                )
+                response.raise_for_status()
+                return response.json()
+            except httpx.HTTPError as exc:
+                last_exc = exc
+                if i < len(OVERPASS_URLS) - 1:
+                    await asyncio.sleep(RETRY_BACKOFF_S)
+    raise HTTPException(status_code=502, detail=f"Nearby clinic lookup failed: {last_exc}") from last_exc
+
+
 async def find_nearby(lat: float, lng: float, radius_m: float) -> list[Hospital]:
     query = OVERPASS_QUERY.format(radius=int(radius_m), lat=lat, lng=lng)
-    try:
-        async with httpx.AsyncClient(timeout=25) as client:
-            response = await client.post(
-                OVERPASS_URL,
-                data={"data": query},
-                headers={"User-Agent": "Dermalyze/1.0 (skin-health assessment app)"},
-            )
-            response.raise_for_status()
-    except httpx.HTTPError as exc:
-        raise HTTPException(status_code=502, detail=f"Nearby clinic lookup failed: {exc}") from exc
+    data = await _query_overpass(query)
 
     hospitals = []
-    for el in response.json().get("elements", []):
+    for el in data.get("elements", []):
         tags = el.get("tags", {})
         name = tags.get("name")
         if not name:
