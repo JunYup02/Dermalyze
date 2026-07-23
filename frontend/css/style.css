@@ -348,13 +348,14 @@ button { font-family: inherit; }
   transition: background 0.15s ease;
   overflow: hidden;
 }
-.dropzone:hover { background: color-mix(in srgb, var(--primary-container) 14%, transparent); }
 .dropzone.dragover { background: color-mix(in srgb, var(--primary-container) 20%, transparent); }
 .dropzone-grid { display: grid; grid-template-columns: 1fr 1fr; }
 .dropzone-cell {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
   padding: 28px 16px; text-align: center;
+  transition: background 0.15s ease;
 }
+.dropzone-cell:hover { background: color-mix(in srgb, var(--primary-container) 20%, transparent); }
 .dropzone-cell + .dropzone-cell { border-left: 1px solid color-mix(in srgb, var(--primary) 20%, transparent); }
 .dropzone-cell .material-symbols-outlined { font-size: 48px; color: var(--primary); }
 .dropzone-cell strong { color: var(--primary); font-size: 15px; }
