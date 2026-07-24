@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 from app.schemas.gemini_report import ClassPrediction
 
-MODEL_NAME = "gemini-2.5-flash"
+MODEL_NAME = "gemini-3.5-flash"
 
 # Set as both a system_instruction and repeated inline in the prompt itself --
 # belt and suspenders against the model matching some other language cue (e.g.
