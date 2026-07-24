@@ -71,12 +71,18 @@ const cameraErrorEl = document.getElementById("camera-error");
 const cameraErrorText = document.getElementById("camera-error-text");
 const cameraCancelBtn = document.getElementById("camera-cancel-btn");
 const cameraShutterBtn = document.getElementById("camera-shutter-btn");
+const cameraFlashToggle = document.getElementById("camera-flash-toggle");
+const cameraFlashEffect = document.getElementById("camera-flash-effect");
 
 let cameraStream = null;
+let isFlashOn = false;
 
 function stopCamera() {
   cameraStream?.getTracks().forEach((track) => track.stop());
   cameraStream = null;
+  isFlashOn = false;
+  cameraFlashToggle.querySelector(".material-symbols-outlined").textContent = "flash_off";
+  cameraFlashToggle.classList.remove("is-active");
   cameraModal.classList.add("hidden");
   cameraErrorEl.classList.add("hidden");
   cameraVideo.classList.remove("hidden");
@@ -114,11 +120,21 @@ async function openCamera() {
 takePhotoBtn.addEventListener("click", openCamera);
 cameraCancelBtn.addEventListener("click", stopCamera);
 
+cameraFlashToggle.addEventListener("click", () => {
+  isFlashOn = !isFlashOn;
+  cameraFlashToggle.querySelector(".material-symbols-outlined").textContent = isFlashOn ? "flash_on" : "flash_off";
+  cameraFlashToggle.classList.toggle("is-active", isFlashOn);
+});
+
 cameraShutterBtn.addEventListener("click", () => {
   if (!cameraStream) return;
   cameraCanvas.width = cameraVideo.videoWidth;
   cameraCanvas.height = cameraVideo.videoHeight;
   cameraCanvas.getContext("2d").drawImage(cameraVideo, 0, 0);
+
+  cameraFlashEffect.classList.add("is-flashing");
+  setTimeout(() => cameraFlashEffect.classList.remove("is-flashing"), 100);
+
   cameraCanvas.toBlob(
     (blob) => {
       if (blob) handleFile(new File([blob], `capture-${Date.now()}.jpg`, { type: "image/jpeg" }));

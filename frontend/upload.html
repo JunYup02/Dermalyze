@@ -55,18 +55,41 @@
         </div>
         <input type="file" id="file-input" accept="image/*" class="hidden">
 
-        <div id="camera-modal" class="hidden" style="position:fixed; inset:0; z-index:100; background:#000; display:flex; flex-direction:column;">
-          <video id="camera-video" autoplay playsinline muted style="flex:1; width:100%; object-fit:cover; background:#000;"></video>
+        <div id="camera-modal" class="hidden camera-modal">
+          <video id="camera-video" autoplay playsinline muted class="camera-video"></video>
           <canvas id="camera-canvas" class="hidden"></canvas>
-          <div id="camera-error" class="hidden" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:#fff; padding:24px; text-align:center;">
+
+          <div id="camera-error" class="hidden camera-error-state">
             <span class="material-symbols-outlined" style="font-size:42px;">videocam_off</span>
             <p id="camera-error-text" style="margin:0;">Couldn't access the camera.</p>
           </div>
-          <div style="display:flex; align-items:center; justify-content:space-between; padding:20px 24px; background:rgba(0,0,0,0.6);">
-            <button type="button" id="camera-cancel-btn" class="btn" style="background:rgba(255,255,255,0.15); color:#fff;">Cancel</button>
-            <button type="button" id="camera-shutter-btn" aria-label="Capture photo" style="width:64px; height:64px; border-radius:50%; background:#fff; border:4px solid rgba(255,255,255,0.5); cursor:pointer;"></button>
-            <span style="width:76px;"></span>
+
+          <header class="camera-topbar">
+            <button type="button" id="camera-cancel-btn" class="camera-icon-btn" aria-label="Close camera">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+            <button type="button" id="camera-flash-toggle" class="camera-icon-btn" aria-label="Toggle flash">
+              <span class="material-symbols-outlined">flash_off</span>
+            </button>
+          </header>
+
+          <div class="camera-guide-wrap">
+            <div class="camera-guide">
+              <span class="guide-corner corner-tl"></span>
+              <span class="guide-corner corner-tr"></span>
+              <span class="guide-corner corner-bl"></span>
+              <span class="guide-corner corner-br"></span>
+            </div>
+            <p class="camera-hint">Center the lesion in the frame for better results</p>
           </div>
+
+          <footer class="camera-footer">
+            <button type="button" id="camera-shutter-btn" class="shutter-ring" aria-label="Take photo">
+              <span class="shutter-btn"></span>
+            </button>
+          </footer>
+
+          <div id="camera-flash-effect" class="camera-flash-effect"></div>
         </div>
 
         <div id="preview-wrap" class="hidden">
