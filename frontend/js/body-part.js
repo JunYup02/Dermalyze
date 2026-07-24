@@ -23,37 +23,27 @@ const nextBtn = document.getElementById("next-step-btn");
 // Split" mockup): screen-left is always labeled "Left X" and screen-right "Right
 // X", on both front and back views -- not anatomically mirrored for the front view.
 //
-// silhouette-back.png used to be a 500x500 canvas with the figure only filling a
-// small centered box (this file was re-cropped to its content bounding box so it
-// fills the frame like the front asset does) -- hotspot percentages below are
-// calibrated against that cropped image.
+// silhouette-front.png and silhouette-back.png are the same pose/layout at the
+// same aspect ratio (just different source resolutions), so one coordinate set
+// lines up correctly on both -- front and back share this single array instead
+// of keeping two hand-calibrated (and easily-drifting) copies in sync.
+const SHARED_HOTSPOTS = [
+  { key: "scalp_face", x: 50, y: 10 },
+  { key: "neck", x: 50, y: 19 },
+  { key: "torso", x: 50, y: 37 },
+  { key: "arms", side: "left", x: 21, y: 34 },
+  { key: "arms", side: "right", x: 79, y: 34 },
+  { key: "hands", side: "left", x: 16, y: 50 },
+  { key: "hands", side: "right", x: 84, y: 50 },
+  { key: "legs", side: "left", x: 42, y: 73 },
+  { key: "legs", side: "right", x: 58, y: 73 },
+  { key: "feet", side: "left", x: 42, y: 94 },
+  { key: "feet", side: "right", x: 58, y: 94 },
+];
+
 const HOTSPOTS = {
-  front: [
-    { key: "scalp_face", x: 50, y: 10 },
-    { key: "neck", x: 50, y: 19 },
-    { key: "torso", x: 50, y: 37 },
-    { key: "arms", side: "left", x: 17, y: 40 },
-    { key: "arms", side: "right", x: 83, y: 40 },
-    { key: "hands", side: "left", x: 12, y: 55 },
-    { key: "hands", side: "right", x: 88, y: 55 },
-    { key: "legs", side: "left", x: 42, y: 73 },
-    { key: "legs", side: "right", x: 58, y: 73 },
-    { key: "feet", side: "left", x: 42, y: 94 },
-    { key: "feet", side: "right", x: 58, y: 94 },
-  ],
-  back: [
-    { key: "scalp_face", x: 50, y: 8 },
-    { key: "neck", x: 50, y: 17 },
-    { key: "torso", x: 50, y: 36 },
-    { key: "arms", side: "left", x: 18, y: 42 },
-    { key: "arms", side: "right", x: 82, y: 42 },
-    { key: "hands", side: "left", x: 12, y: 57 },
-    { key: "hands", side: "right", x: 88, y: 57 },
-    { key: "legs", side: "left", x: 43, y: 73 },
-    { key: "legs", side: "right", x: 57, y: 73 },
-    { key: "feet", side: "left", x: 43, y: 96 },
-    { key: "feet", side: "right", x: 57, y: 96 },
-  ],
+  front: SHARED_HOTSPOTS,
+  back: SHARED_HOTSPOTS,
 };
 
 let regions = [];
