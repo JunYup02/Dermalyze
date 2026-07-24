@@ -17,6 +17,19 @@ from app.schemas.gemini_report import ClassPrediction
 
 MODEL_NAME = "gemini-3.5-flash"
 
+# The classification model returns short HAM10000 codes (e.g. "nv"), not names --
+# expand to a full name here so Gemini always gets (and can use) the real disease
+# name rather than guessing what the abbreviation means each time.
+FULL_DISEASE_NAMES = {
+    "akiec": "actinic keratosis / Bowen's disease (intraepithelial carcinoma)",
+    "bcc": "basal cell carcinoma",
+    "bkl": "benign keratosis-like lesion (solar lentigo, seborrheic keratosis, or lichen-planus-like keratosis)",
+    "df": "dermatofibroma",
+    "mel": "melanoma",
+    "nv": "melanocytic nevus",
+    "vasc": "vascular lesion (angioma, angiokeratoma, pyogenic granuloma, or hemorrhage)",
+}
+
 # Set as both a system_instruction and repeated inline in the prompt itself --
 # belt and suspenders against the model matching some other language cue (e.g.
 # variable names, or just drifting) instead of the instruction.
@@ -26,19 +39,19 @@ SYSTEM_INSTRUCTION = (
 )
 
 PROMPT_TEMPLATE = """You are an AI assistant supporting a dermatology workflow. The attached image is a
-photo of a skin lesion taken by the patient. Below is the output of an AI classification model that
-analyzed the image, listed in descending order of probability.
+photo of a skin lesion taken by the patient. An AI classification model's top predicted condition for
+this lesion is:
 
-{predictions}
+{disease_name}
 
-Look at the image yourself and write the following three fields. IMPORTANT: every field must be written
-in English only -- do not use Korean or any other language, even if it feels more natural for the
-content.
+Do not mention or imply any confidence score, probability, or percentage anywhere in your answer --
+just refer to this as the predicted condition. Look at the image yourself and write the following
+three fields. IMPORTANT: every field must be written in English only -- do not use Korean or any other
+language, even if it feels more natural for the content.
 
-1. report: 3-5 sentences in English. Explain the most likely diagnosis in plain language, note how
-   confident that probability is compared to the other candidates, and suggest a recommended next step
-   (e.g. whether an in-person visit is warranted). The final sentence must state that this is a
-   reference-only AI analysis, not a medical diagnosis.
+1. report: 3-5 sentences in English. Explain the predicted condition in plain language and suggest a
+   recommended next step (e.g. whether an in-person visit is warranted). The final sentence must state
+   that this is a reference-only AI analysis, not a medical diagnosis.
 2. texture_note: One sentence in English on the lesion's border/texture as actually observed in the
    image (e.g. whether the border is smooth or irregular, symmetric or not). Describe only what is
    actually visible in the image.
@@ -69,10 +82,9 @@ def _get_client() -> genai.Client:
 
 
 def generate_report(predictions: list[ClassPrediction], image: Image.Image) -> ReportResult:
-    predictions_text = "\n".join(
-        f"{i + 1}. {p.name} ({p.probability:.1%})" for i, p in enumerate(predictions)
-    )
-    prompt = PROMPT_TEMPLATE.format(predictions=predictions_text)
+    top = max(predictions, key=lambda p: p.probability)
+    disease_name = FULL_DISEASE_NAMES.get(top.name, top.name)
+    prompt = PROMPT_TEMPLATE.format(disease_name=disease_name)
 
     try:
         response = _get_client().models.generate_content(
