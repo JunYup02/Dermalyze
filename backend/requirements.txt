@@ -1,11 +1,16 @@
 fastapi
 uvicorn[standard]
 google-genai
-google-auth
 pillow
 python-multipart
 python-dotenv
 httpx
+
+# --- Local skin-lesion classifier (app/services/local_predictor.py) ---
+scikit-learn
+scikit-image
+numpy
+joblib
 
 # --- Auth / lesion body-part (SQLAlchemy + JWT) ---
 sqlalchemy

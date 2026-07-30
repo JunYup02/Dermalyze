@@ -3,7 +3,7 @@ from fastapi import APIRouter, File, UploadFile
 from app.schemas.gemini_report import GeminiReportResponse
 from app.services.gemini_report import generate_report
 from app.services.image import load_upload_image
-from app.services.vertex_predictor import classify
+from app.services.local_predictor import classify
 
 router = APIRouter()
 

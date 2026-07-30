@@ -3,7 +3,7 @@
 
   ![Brand](https://img.shields.io/badge/Dermalyze-2BB3A8?style=for-the-badge)
   ![python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=Python&logoColor=white)
-  ![GCP](https://img.shields.io/badge/GCP-Vertex_AI-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)
+  ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white)
   ![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)
   ![Stars](https://img.shields.io/github/stars/JunYup02/Dermalyze?style=for-the-badge)
   ![Last Commit](https://img.shields.io/github/last-commit/JunYup02/Dermalyze?style=for-the-badge)
@@ -23,7 +23,7 @@
 
 > Your skin, decoded by AI.
 
-Dermalyze is a B2C self-assessment service that turns a single photo into a clear skin lesion risk read — powered by a Vertex AI AutoML model.
+Dermalyze is a B2C self-assessment service that turns a single photo into a clear skin lesion risk read — powered by a scikit-learn model trained on the HAM10000 dataset and shipped with the backend as a `.pkl` file (no cloud ML endpoint or GCP billing required).
 
 ## Demo
 
@@ -67,10 +67,10 @@ Dermalyze is a B2C self-assessment service that turns a single photo into a clea
 
 | Area | Technology |
 |:---|:---|
-| 🤖 ML | Vertex AI AutoML |
+| 🤖 ML | scikit-learn RandomForest, trained locally, loaded from a committed `.pkl` |
 | ⚙️ Backend | FastAPI, Render |
 | 🎨 Frontend | HTML, CSS, JavaScript |
-| ☁️ Infra | GCP, PostgreSQL |
+| ☁️ Infra | PostgreSQL |
 
 <br>
 
@@ -80,13 +80,15 @@ Dermalyze is a B2C self-assessment service that turns a single photo into a clea
   <img src="./assets/architecture.png" width="100%"/>
 </div>
 
+<sub>⚠️ Diagram predates the move off Vertex AI — model inference is now local, not a GCP endpoint (see table below).</sub>
+
 | Layer | Service | Role |
 |:---|:---|:---|
 | Frontend | Static HTML / CSS (Render) | User-facing web app |
 | Backend | Python + FastAPI (Render) | API logic, lesion type routing |
 | Database | PostgreSQL (Render) | User ID, password hash, age, sex |
-| Model Inference | Vertex AI Endpoint (GCP) | AutoML image model prediction |
-| External API | Google Maps API | Nearby dermatology clinic search |
+| Model Inference | Local scikit-learn model (`backend/app/ml_models/skin_lesion_model.pkl`) | Image classification prediction, runs in-process |
+| External API | OpenStreetMap Overpass API | Nearby dermatology clinic search |
 
 <sub>Dashed boxes = deployment / provider boundary · Double arrows = request / response</sub>
 
@@ -102,8 +104,12 @@ Dermalyze/
 │   │   ├── core/         # config.py, database.py, security.py
 │   │   ├── models/       # user.py
 │   │   ├── schemas/      # auth.py, gemini_report.py, hospitals.py, lesion.py
-│   │   ├── services/     # gemini_report.py, image.py, places.py, vertex_predictor.py
+│   │   ├── services/     # gemini_report.py, image.py, places.py, local_predictor.py
+│   │   ├── ml/           # features.py — feature extraction shared by training + inference
+│   │   ├── ml_models/    # skin_lesion_model.pkl — committed, trained model artifact
 │   │   └── main.py
+│   ├── scripts/
+│   │   └── train_model.py  # retrain the .pkl from the HAM10000 dataset
 │   ├── tests/
 │   ├── render.yaml
 │   └── requirements.txt

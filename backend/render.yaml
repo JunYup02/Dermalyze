@@ -8,17 +8,9 @@ services:
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
+      # Skin lesion classification runs locally from a committed .pkl model
+      # (app/ml_models/skin_lesion_model.pkl) -- no GCP env vars needed for it.
       - key: GEMINI_API_KEY
-        sync: false
-      - key: VERTEX_PROJECT_ID
-        sync: false
-      - key: VERTEX_LOCATION
-        sync: false
-      - key: VERTEX_ENDPOINT_ID
-        sync: false
-      # Value should be the path Render mounts your service-account key at via
-      # a Secret File, e.g. /etc/secrets/dermalyze-gcp.json — see backend/README.md.
-      - key: GOOGLE_APPLICATION_CREDENTIALS
         sync: false
       - key: DATABASE_URL
         sync: false
