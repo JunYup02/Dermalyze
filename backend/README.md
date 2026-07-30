@@ -27,11 +27,16 @@ uvicorn app.main:app --reload
 generates by looking directly at the uploaded photo (via structured JSON output, see
 `app/services/gemini_report.py`), not static text.
 
-The classification step (predicting one of the 7 HAM10000 lesion types) runs **locally**, in-process
-— `app/services/local_predictor.py` loads `app/ml_models/skin_lesion_model.pkl` (a scikit-learn
-RandomForest over color/texture/HOG features, see `app/ml/features.py`) once on first use and calls
-`predict_proba` on it. No GCP project, endpoint, or credentials needed for this — the model ships
-with the repo.
+The classification step (predicting one of the 7 HAM10000 lesion types) picks a backend via
+`app/services/predictor.py`, selected by the `PREDICTION_BACKEND` env var:
+
+- `local` (default — used when the var is unset) runs **locally**, in-process:
+  `app/services/local_predictor.py` loads `app/ml_models/skin_lesion_model.pkl` (a scikit-learn
+  RandomForest over color/texture/HOG features, see `app/ml/features.py`) once on first use and
+  calls `predict_proba` on it. No GCP project, endpoint, or credentials needed.
+- `vertex` calls a deployed Vertex AI AutoML endpoint instead (`app/services/vertex_predictor.py`,
+  kept around for exactly this — switching back if a GCP endpoint gets provisioned again). Needs
+  `VERTEX_PROJECT_ID`, `VERTEX_LOCATION`, `VERTEX_ENDPOINT_ID`, `GOOGLE_APPLICATION_CREDENTIALS` set.
 
 To retrain it (e.g. after collecting more data), point `scripts/train_model.py` at a copy of the
 original HAM10000 export (a `vertex_ai_import.csv` manifest + an `images/` folder — see the script's
@@ -61,7 +66,8 @@ cp .env.example .env
 ```
 
 - `GEMINI_API_KEY` — from [Google AI Studio](https://aistudio.google.com/apikey), needed for the
-  natural-language report text (not the classification itself, which needs no key/env var).
+  natural-language report text (not the classification itself, which defaults to the local model
+  and needs no key/env var — see "Skin lesion classification" above for the `vertex` fallback).
 
 `GET /api/hospitals/nearby?lat=&lng=` (nearby hospitals/clinics) needs no env var or API key —
 it queries the free, keyless OpenStreetMap Overpass API (`app/services/places.py`). Tradeoff: OSM
@@ -91,8 +97,11 @@ for this service — connect the repo in the Render dashboard and it picks up th
 commands and health check automatically. Then fill in the env vars it declares (all `sync: false`,
 so Render prompts for them instead of committing values):
 
-- Same list as above (`GEMINI_API_KEY`, `SECRET_KEY` is auto-generated, etc). No Places API key or
-  GCP credentials needed — the classifier's `.pkl` is committed to the repo and loads in-process.
+- Same list as above (`GEMINI_API_KEY`, `SECRET_KEY` is auto-generated, etc). No Places API key
+  needed. `PREDICTION_BACKEND` defaults to `local` (committed `.pkl`, loads in-process, no GCP
+  needed) — leave the `VERTEX_*`/`GOOGLE_APPLICATION_CREDENTIALS` vars blank unless you set it to
+  `vertex`, in which case see the note in `render.yaml` about uploading the service-account JSON
+  as a Render Secret File rather than pasting it into a regular env var.
 - `DATABASE_URL` — Render's disk is ephemeral, so the SQLite fallback gets wiped on every deploy.
   Provision a Postgres instance (Render's own, or any external one) before real users sign up, and
   set this to its connection string.

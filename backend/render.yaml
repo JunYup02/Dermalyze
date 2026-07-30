@@ -8,9 +8,26 @@ services:
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
-      # Skin lesion classification runs locally from a committed .pkl model
-      # (app/ml_models/skin_lesion_model.pkl) -- no GCP env vars needed for it.
+      # Skin lesion classification defaults to a local, committed .pkl model
+      # (app/ml_models/skin_lesion_model.pkl) -- no GCP env vars needed for that.
+      # Set PREDICTION_BACKEND=vertex plus the VERTEX_*/GOOGLE_APPLICATION_CREDENTIALS
+      # vars below to route through a Vertex AI endpoint instead (see
+      # app/services/predictor.py); leave them unset otherwise.
       - key: GEMINI_API_KEY
+        sync: false
+      - key: PREDICTION_BACKEND
+        value: local
+      - key: VERTEX_PROJECT_ID
+        sync: false
+      - key: VERTEX_LOCATION
+        sync: false
+      - key: VERTEX_ENDPOINT_ID
+        sync: false
+      # If used, don't paste key contents into a regular env var -- upload the
+      # service-account JSON as a Render Secret File (Environment -> Secret Files),
+      # then set this to the mount path Render gives it, e.g.
+      # /etc/secrets/dermalyze-gcp.json.
+      - key: GOOGLE_APPLICATION_CREDENTIALS
         sync: false
       - key: DATABASE_URL
         sync: false

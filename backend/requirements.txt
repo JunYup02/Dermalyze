@@ -6,11 +6,15 @@ python-multipart
 python-dotenv
 httpx
 
-# --- Local skin-lesion classifier (app/services/local_predictor.py) ---
+# --- Local skin-lesion classifier (app/services/local_predictor.py), default backend ---
 scikit-learn
 scikit-image
 numpy
 joblib
+
+# --- Vertex AI classifier backend (app/services/vertex_predictor.py), opt-in via
+# PREDICTION_BACKEND=vertex -- see app/services/predictor.py ---
+google-auth
 
 # --- Auth / lesion body-part (SQLAlchemy + JWT) ---
 sqlalchemy
