@@ -13,7 +13,8 @@
     <a href="#how-it-works">How It Works</a> •
     <a href="#tech-stack">Tech Stack</a> •
     <a href="#live-demo">Live Demo</a> •
-    <a href="#team">Team</a>
+    <a href="#team">Team</a> •
+    <a href="./PRD.md">PRD</a>
   </p>
 </div>
 
@@ -24,6 +25,8 @@
 > Your skin, decoded by AI.
 
 Dermalyze is a B2C self-assessment service that turns a single photo into a clear skin lesion risk read — powered by a scikit-learn model trained on the HAM10000 dataset and shipped with the backend as a `.pkl` file (no cloud ML endpoint or GCP billing required).
+
+> 📄 Looking for product requirements and specs? See [PRD.md](./PRD.md).
 
 ## Demo
 
@@ -134,6 +137,8 @@ Dermalyze/
 ## Team
 
 See [TEAM.md](./TEAM.md) for team details.
+
+For product requirements, scope, and specs, see [PRD.md](./PRD.md).
 
 ---
 
