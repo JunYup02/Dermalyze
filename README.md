@@ -30,7 +30,7 @@ Dermalyze is a B2C self-assessment service that turns a single photo into a clea
 
 ## Demo
 
-> ✨ Deployment link & screenshots coming soon — stay tuned.
+🎬 Watch the demo video: **[youtu.be/S3S7a9rGxTg](https://youtu.be/S3S7a9rGxTg)**
 
 <br>
 
