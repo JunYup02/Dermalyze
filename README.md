@@ -28,6 +28,14 @@ Dermalyze is a B2C self-assessment service that turns a single photo into a clea
 
 > 📄 Looking for product requirements and specs? See [PRD.md](./PRD.md).
 
+## Executive Summary
+
+**4) Team D – Dermalyze** *(AI service platform)*
+
+**Subtitle:** Skin Condition & Severity Analysis
+
+Dermalyze is an AI service platform that helps identify potential skin conditions and assess their severity. Users can simply take a photo of the affected area and upload it through the application. The platform then predicts the most likely skin conditions along with an estimated severity class. This allows users to perform an initial self-assessment and better understand whether their symptoms require medical attention. By providing timely and accessible information, Dermalyze supports more informed healthcare decisions and encourages appropriate clinical visits when necessary.
+
 ## Demo
 
 🎬 Watch the demo video: **[youtu.be/S3S7a9rGxTg](https://youtu.be/S3S7a9rGxTg)**
