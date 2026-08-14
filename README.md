@@ -9,9 +9,12 @@
   ![Last Commit](https://img.shields.io/github/last-commit/JunYup02/Dermalyze?style=for-the-badge)
 
   <p>
+    <a href="#problem-statement">Problem</a> •
+    <a href="#solution-overview">Solution</a> •
     <a href="#key-features">Features</a> •
-    <a href="#how-it-works">How It Works</a> •
     <a href="#tech-stack">Tech Stack</a> •
+    <a href="#target-users">Target Users</a> •
+    <a href="#project-files">Project Files</a> •
     <a href="#live-demo">Live Demo</a> •
     <a href="#team">Team</a> •
     <a href="./PRD.md">PRD</a>
@@ -28,13 +31,38 @@ Dermalyze is a B2C self-assessment service that turns a single photo into a clea
 
 > 📄 Looking for product requirements and specs? See [PRD.md](./PRD.md).
 
-## Executive Summary
+### Submission Requirements Checklist
 
-**4) Team D – Dermalyze** *(AI service platform)*
+| Devpost requirement | Covered in this README |
+|:---|:---|
+| Project Title | **Dermalyze** (see badge/header above) |
+| Problem Statement | [Problem Statement](#problem-statement) |
+| Solution Overview | [Solution Overview](#solution-overview) |
+| Key Features | [Key Features](#key-features) |
+| Technologies Used | [Tech Stack](#tech-stack) |
+| Target Users | [Target Users](#target-users) |
+| Project Files (screenshots / video) | [Project Files](#project-files) |
+| Project Link / Repository | This repository + [Live Demo](#live-demo) |
+| Team Details | [Team](#team) |
+
+<br>
+
+## Problem Statement
+
+When someone notices a new or changing skin lesion (mole, spot, etc.), they usually have no reliable way to judge whether it's dangerous — so most people either ignore it or make an unnecessary, costly clinic visit "just in case."
+
+This gap exists because of:
+1. **Lack of accessible expert knowledge** — most people can't tell a benign mole from an early-stage malignancy by eye.
+2. **Barriers to visiting a clinic** — cost and time keep people from getting a professional opinion for something that "might be nothing."
+3. **Existing self-check apps stop short** — they output a bare risk score with no guidance on what to actually do next.
+
+## Solution Overview
+
+**Team D – Dermalyze** *(AI service platform)*
 
 **Subtitle:** Skin Condition & Severity Analysis
 
-Dermalyze is an AI service platform that helps identify potential skin conditions and assess their severity. Users can simply take a photo of the affected area and upload it through the application. The platform then predicts the most likely skin conditions along with an estimated severity class. This allows users to perform an initial self-assessment and better understand whether their symptoms require medical attention. By providing timely and accessible information, Dermalyze supports more informed healthcare decisions and encourages appropriate clinical visits when necessary.
+Dermalyze is an AI service platform that helps identify potential skin conditions and assess their severity. Users simply take a photo of the affected area and upload it through the application. The platform then predicts the most likely skin condition along with an estimated severity class, and branches the user toward a concrete next action — self-care guidance for low-risk results, or a nearby clinic connection for high-risk results. This allows users to perform an initial self-assessment and better understand whether their symptoms require medical attention, supporting more informed healthcare decisions and encouraging appropriate clinical visits when necessary.
 
 ## Demo
 
@@ -63,6 +91,16 @@ Dermalyze is an AI service platform that helps identify potential skin condition
 
 <br>
 
+## Target Users
+
+| Persona | Description |
+|:---|:---|
+| **Primary** — Everyday adults (20s–40s) | Notice a skin abnormality but hesitate to visit a clinic; want a quick, jargon-free "is this serious?" answer before deciding whether to book an appointment |
+| **Secondary** — Older adults (60s–70s) | Higher-risk group for malignant/precancerous lesions (melanoma, basal cell carcinoma); benefit most from early, low-friction screening |
+| **Not the current target** | Patients already under regular dermatology follow-up who need clinical-grade longitudinal tracking — that's a professional-medical-workflow use case, out of scope for now |
+
+<br>
+
 ## How It Works
 
 | Step | Action |
@@ -82,6 +120,20 @@ Dermalyze is an AI service platform that helps identify potential skin condition
 | ⚙️ Backend | FastAPI, Render |
 | 🎨 Frontend | HTML, CSS, JavaScript |
 | ☁️ Infra | PostgreSQL |
+
+<br>
+
+## Project Files
+
+Files demonstrating functionality and design, per the submission requirements:
+
+| File | Description |
+|:---|:---|
+| 🎬 [Demo video](https://youtu.be/S3S7a9rGxTg) | End-to-end walkthrough of the app |
+| 🖼️ [assets/banner.png](./assets/banner.png) | Product banner / branding |
+| 🗺️ [assets/architecture.png](./assets/architecture.png) | System architecture diagram |
+| 📸 [assets/team-photo.jpg](./assets/team-photo.jpg) | Team photo |
+| 🔗 [Live Demo](#live-demo) | Deployed, working application |
 
 <br>
 
@@ -144,7 +196,15 @@ Dermalyze/
 
 ## Team
 
-See [TEAM.md](./TEAM.md) for team details.
+| Name | Role |
+|:---|:---|
+| 🐼 Yeonwoo Noh | Team Leader |
+| 🐱 Junyup Lee | Tech Leader |
+| 🦊 Cheoljun Yu | Backend |
+| 🐹 Chaeryoung Hong | Frontend |
+| 🐢 Jiwon Kim | Frontend, Backend |
+
+See [TEAM.md](./TEAM.md) for full team details.
 
 For product requirements, scope, and specs, see [PRD.md](./PRD.md).
 
