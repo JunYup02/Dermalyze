@@ -212,13 +212,15 @@ We also acknowledge the following sources of research support:
 
 This research was supported by the MSIT (Ministry of Science and ICT), Korea, under the National Program for Excellence in SW (2021-0-01393), supervised by the IITP (Institute of Information & Communications Technology Planning & Evaluation).
 
+---
+
 ## Dataset, AI Model & References
 
 ### Dataset
 
 This project uses the following dataset:
 
-- [**HAM10000 (Human Against Machine with 10,000 training images)**](https://www.kaggle.com/datasets/kmader/skin-cancer-mnist-ham10000) — A large collection of 10,015 dermatoscopic images of common pigmented skin lesions collected from multiple sources. The dataset contains seven diagnostic categories: actinic keratoses and intraepithelial carcinoma (`akiec`), basal cell carcinoma (`bcc`), benign keratosis-like lesions (`bkl`), dermatofibroma (`df`), melanoma (`mel`), melanocytic nevi (`nv`), and vascular lesions (`vasc`). The dataset was used to train, validate, and test the skin lesion classification model. [Tschandl et al. (2018)]
+- [**HAM10000 (Human Against Machine with 10,000 training images)**](https://www.kaggle.com/datasets/kmader/skin-cancer-mnist-ham10000) — A large collection of 10,015 dermatoscopic images of common pigmented skin lesions collected from multiple sources. The dataset contains seven diagnostic categories: actinic keratoses and intraepithelial carcinoma (`akiec`), basal cell carcinoma (`bcc`), benign keratosis-like lesions (`bkl`), dermatofibroma (`df`), melanoma (`mel`), melanocytic nevi (`nv`), and vascular lesions (`vasc`). The dataset was used to train, validate, and test for skin condition & severity analysis. [Tschandl et al. (2018)]
 
 ### AI Model
 
