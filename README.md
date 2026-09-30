@@ -234,7 +234,7 @@ This project uses the following AI models:
 1. Tschandl, P., Rosendahl, C., and Kittler, H., "The HAM10000 Dataset, a Large Collection of Multi-Source Dermatoscopic Images of Common Pigmented Skin Lesions," *Scientific Data*, vol. 5, Article 180161, 2018. [[DOI](https://doi.org/10.1038/sdata.2018.161)]
 2. Google Cloud, "Vertex AI AutoML," *Google Cloud Documentation*. [[Documentation](https://cloud.google.com/vertex-ai/docs/start/automl-model-types)]
 3. Google AI, "Gemini 2.5 Flash," *Google AI for Developers*. [[Documentation](https://ai.google.dev/gemini-api/docs/models/gemini-2.5-flash)]
-4. Moldovan, D., et al., "Skin Lesion Classification Using Collective Intelligence of Multiple Neural Networks," *Sensors*, vol. 22, no. 12, Article 4399, 2022. [[DOI](https://doi.org/10.3390/s22124399)]
+4. Popescu, D., El-khatib, M., and Ichim, L., "Skin Lesion Classification Using Collective Intelligence of Multiple Neural Networks," *Sensors*, vol. 22, no. 12, Article 4399, 2022. [[DOI](https://doi.org/10.3390/s22124399)]
 
 <div align="center">
   <sub>Built by our team, one commit at a time 💙 Questions, ideas, or bugs? Open an issue — we'd love to hear from you.</sub>
