@@ -202,6 +202,38 @@ For product requirements, scope, and specs, see [PRD.md](./PRD.md).
 
 ---
 
+## Acknowledgments
+
+This AI Service Platform was developed as part of the [17th QI AI Entrepreneurship Program – Summer 2026 (full content)](https://www.kaggle.com/code/QualcommInstituteAI/17th-qi-ai-entrepreneurship-program-summer-2026) & [(summary record)](https://github.com/Qualcomm-Institute-AI/QI-AI-Programs/tree/main/2026/Summer/17th%20QI%20AI%20Entrepreneurship%20Program), hosted by the Qualcomm Institute (QI), University of California, San Diego (UC San Diego).
+
+We would like to express our sincere gratitude to [Dr. Seokheon Cho](hhttps://www.linkedin.com/in/justin-cho-phd/) of the Qualcomm Institute for his extensive guidance, supervision, and support throughout the development of this platform.
+
+We also acknowledge the following sources of research support:
+
+This research was supported by the MSIT (Ministry of Science and ICT), Korea, under the National Program for Excellence in SW (2021-0-01393), supervised by the IITP (Institute of Information & Communications Technology Planning & Evaluation).
+
+## Dataset, AI Model & References
+
+### Dataset
+
+This project uses the following dataset:
+
+- [**HAM10000 (Human Against Machine with 10,000 training images)**](https://www.kaggle.com/datasets/kmader/skin-cancer-mnist-ham10000) — A large collection of 10,015 dermatoscopic images of common pigmented skin lesions collected from multiple sources. The dataset contains seven diagnostic categories: actinic keratoses and intraepithelial carcinoma (`akiec`), basal cell carcinoma (`bcc`), benign keratosis-like lesions (`bkl`), dermatofibroma (`df`), melanoma (`mel`), melanocytic nevi (`nv`), and vascular lesions (`vasc`). The dataset was used to train, validate, and test the skin lesion classification model. [Tschandl et al. (2018)]
+
+### AI Model
+
+This project uses the following AI models:
+
+- [**Google Cloud Vertex AI AutoML Image Classification**](https://cloud.google.com/vertex-ai/docs/start/automl-model-types) — Used as the primary skin lesion classification model. The HAM10000 dataset was used to train an AutoML image classification model that predicts one of seven skin lesion categories: `akiec`, `bcc`, `bkl`, `df`, `mel`, `nv`, and `vasc`. The trained model was deployed through a Vertex AI endpoint and integrated with the backend for image inference.
+- [**Gemini 2.5 Flash**](https://ai.google.dev/gemini-api/docs/models/gemini-2.5-flash) — Used to generate clear, user-friendly explanations based on the skin lesion classification result. It provides general information about the predicted condition and additional guidance for users. Gemini does not perform the primary skin lesion classification; the lesion category is determined by the Vertex AI AutoML model.
+
+### References
+
+1. Tschandl, P., Rosendahl, C., and Kittler, H., "The HAM10000 Dataset, a Large Collection of Multi-Source Dermatoscopic Images of Common Pigmented Skin Lesions," *Scientific Data*, vol. 5, Article 180161, 2018. [[DOI](https://doi.org/10.1038/sdata.2018.161)]
+2. Google Cloud, "Vertex AI AutoML," *Google Cloud Documentation*. [[Documentation](https://cloud.google.com/vertex-ai/docs/start/automl-model-types)]
+3. Google AI, "Gemini 2.5 Flash," *Google AI for Developers*. [[Documentation](https://ai.google.dev/gemini-api/docs/models/gemini-2.5-flash)]
+4. Moldovan, D., et al., "Skin Lesion Classification Using Collective Intelligence of Multiple Neural Networks," *Sensors*, vol. 22, no. 12, Article 4399, 2022. [[DOI](https://doi.org/10.3390/s22124399)]
+
 <div align="center">
   <sub>Built by our team, one commit at a time 💙 Questions, ideas, or bugs? Open an issue — we'd love to hear from you.</sub>
 </div>
